@@ -1,0 +1,23 @@
+{
+  "name": "techviz",
+  "version": "0.1.0",
+  "description": "Renderers for technical diagrams from compact JSON specs",
+  "type": "module",
+  "license": "MIT",
+  "main": "src/index.js",
+  "bin": {
+    "techviz": "src/cli.js"
+  },
+  "scripts": {
+    "build": "esbuild src/browser.js --bundle --minify --format=iife --global-name=techviz --outfile=dist/techviz.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "@viz-js/viz": "^3.31.0",
+    "wavedrom": "^3.7.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
