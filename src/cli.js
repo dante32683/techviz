@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createHash } from 'node:crypto'
 import { tmpdir } from 'node:os'
-import { render } from './index.js'
+import { renderAsync } from './index.js'
 
 const [cmd, file, ...rest] = process.argv.slice(2)
 const opt = (name, dflt) => { const i = rest.indexOf(`--${name}`); return i >= 0 ? rest[i + 1] : dflt }
@@ -32,7 +32,7 @@ try {
 
 const theme = opt('theme', 'paper')
 const step = opt('step') !== undefined ? Number(opt('step')) : undefined
-const r = render(spec, { theme, step, uid: 'tv' })
+const r = await renderAsync(spec, { theme, step, uid: 'tv' })
 if (!r.svg || cmd === 'check') {
   out({ ok: !!r.svg, diagnostics: r.diagnostics, summary: r.summary, controls: r.controls })
   process.exit(r.svg ? 0 : 1)

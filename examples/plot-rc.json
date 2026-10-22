@@ -1,0 +1,4 @@
+{"v":1,"kind":"plot","x":{"label":"t","unit":"ms","range":[0,5]},"y":{"label":"v_{C}","unit":"V","range":[0,5.5]},
+ "params":{"tau":{"value":1,"min":0.2,"max":3,"step":0.1,"unit":"ms","label":"\\tau"}},
+ "series":[{"y":"5*(1-exp(-x/tau))","label":"charging"},{"y":"5*exp(-x/tau)","label":"discharging","style":"dashed"}],
+ "marks":[{"x":"tau","label":"t = \\tau"},{"point":["tau","5*(1-exp(-1))"],"label":"63\\%","guides":true}]}

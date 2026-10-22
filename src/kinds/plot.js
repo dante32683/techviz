@@ -4,15 +4,15 @@
 import { el, pathD, arrowMarker } from '../svg.js'
 import { labelSvg, measure } from '../label.js'
 import { color } from '../theme.js'
-import { compile } from '../expr.js'
+import { compile, compileFor } from '../expr.js'
 import { SpecError } from '../diag.js'
 import { ticks, logTicks, fmt, contours, solveOde, sampleFn } from '../geom.js'
 
-const fn1 = (src, name, env) => { const { fn } = compile(src); return (v) => fn({ ...env, [name]: v }) }
-const fn2 = (src, env) => { const { fn } = compile(src); return (x, y) => fn({ ...env, x, y }) }
+const fn1 = (src, name, env) => { const { fn } = compileFor(src, [...Object.keys(env), name]); return (v) => fn({ ...env, [name]: v }) }
+const fn2 = (src, env) => { const { fn } = compileFor(src, [...Object.keys(env), 'x', 'y']); return (x, y) => fn({ ...env, x, y }) }
 const val = (v, env, path) => {
   if (typeof v === 'number') return v
-  if (typeof v === 'string') return compile(v).fn(env)
+  if (typeof v === 'string') return compileFor(v, Object.keys(env)).fn(env)
   throw new SpecError(path, `expected a number or expression, got ${JSON.stringify(v)}`)
 }
 

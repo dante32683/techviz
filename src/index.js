@@ -75,6 +75,23 @@ function* walkItems(list) {
 }
 
 /**
+ * Load what a spec's kind needs before a synchronous render (a WASM engine, say).
+ * Kinds with nothing to load resolve at once. Call it before the first render.
+ */
+export async function prepare(spec) {
+  const kind = KINDS[spec?.kind]
+  if (kind?.prepare) await kind.prepare()
+}
+
+/** prepare() then render(). */
+export async function renderAsync(spec, opts = {}) {
+  try { await prepare(spec) } catch (err) {
+    return { svg: null, width: 0, height: 0, diagnostics: [{ level: 'error', path: 'kind', msg: `could not load the ${spec?.kind} engine: ${err?.message ?? err}` }], text: '', controls: null, summary: '' }
+  }
+  return render(spec, opts)
+}
+
+/**
  * Render a spec. Options: theme ('paper' | 'dark' | 'host'), params (overrides),
  * step (index; default the last), uid (prefix for ids in the SVG).
  * Returns { svg?, width, height, diagnostics: [{level, path, msg}], text, controls, summary }.

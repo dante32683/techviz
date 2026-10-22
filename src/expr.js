@@ -114,3 +114,18 @@ export function value(v, env = {}) {
   if (typeof v === 'string') return compile(v).fn(env)
   throw new ExprError(`expected a number or expression, got ${JSON.stringify(v)}`)
 }
+
+/**
+ * Compile and check that every variable is in `allowed` (params plus the bound
+ * variables). Throws ExprError naming the unknown ones, so a typo can't turn
+ * into a silently empty curve.
+ */
+export function compileFor(src, allowed) {
+  const c = compile(src)
+  const unknown = [...c.vars].filter((v) => !allowed.includes(v))
+  if (unknown.length) {
+    throw new ExprError(`unknown variable${unknown.length > 1 ? 's' : ''} ${unknown.join(', ')} in "${src}"; ` +
+      `available: ${allowed.join(', ') || 'none'} (add a param for a constant)`)
+  }
+  return c
+}

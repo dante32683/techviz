@@ -1,0 +1,2 @@
+{"v":1,"kind":"plot","x":{"label":"x","range":[-3,3]},"y":{"label":"y","range":[-3,3]},"size":[460,420],
+ "slopefield":{"dydx":"x - y"},"isoclines":[0,1],"solutions":[{"from":[0,1],"label":"y(0)=1"},{"from":[0,-2]}]}

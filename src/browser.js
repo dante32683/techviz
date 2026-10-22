@@ -2,7 +2,7 @@
 // the page, draws it with the host theme, and adds a slider per param and back
 // and next buttons for steps. Interaction redraws locally, with no model call.
 
-import { render, parseLabel } from './index.js'
+import { render, prepare, parseLabel } from './index.js'
 
 const css = `
 .tv-wrap{display:block;margin:0.25rem 0}
@@ -66,6 +66,10 @@ export function mount(script) {
     return r
   }
   const redraw = () => { if (!pending) { pending = true; requestAnimationFrame(draw) } }
+  prepare(spec).then(() => build(), (err) => {
+    const e = document.createElement('div'); e.className = 'tv-err'; e.textContent = `techviz: could not load the ${spec.kind} engine: ${err?.message ?? err}`; root.appendChild(e)
+  })
+  const build = () => {
   const first = draw()
   const c = first?.controls
   if (!c) return
@@ -99,6 +103,7 @@ export function mount(script) {
     controls.appendChild(box)
   }
   if (!controls.children.length) controls.remove()
+  }
 }
 
 export function mountAll(scope = document) {
@@ -108,6 +113,6 @@ export function mountAll(scope = document) {
   for (const s of scope.querySelectorAll('script[type="application/json"][data-techviz]')) mount(s)
 }
 
-export { render }
+export { render, prepare }
 
 mountAll()
