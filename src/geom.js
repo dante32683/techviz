@@ -117,3 +117,32 @@ export function sampleFn(f, [a, b], n, yspan, log = false) {
   if (cur.length > 1) lines.push(cur)
   return lines
 }
+
+/** The part of segment a-b inside the rectangle [x0, x1] × [y0, y1] (Liang–Barsky), or null. */
+export function clipSegment([ax, ay], [bx, by], [x0, x1, y0, y1]) {
+  if (![ax, ay, bx, by].every(Number.isFinite)) return null
+  const dx = bx - ax, dy = by - ay
+  let t0 = 0, t1 = 1
+  for (const [p, q] of [[-dx, ax - x0], [dx, x1 - ax], [-dy, ay - y0], [dy, y1 - ay]]) {
+    if (p === 0) { if (q < 0) return null; continue }
+    const t = q / p
+    if (p < 0) { if (t > t1) return null; if (t > t0) t0 = t } else { if (t < t0) return null; if (t < t1) t1 = t }
+  }
+  return [t0 === 0 ? [ax, ay] : [ax + t0 * dx, ay + t0 * dy], t1 === 1 ? [bx, by] : [ax + t1 * dx, ay + t1 * dy]]
+}
+
+/** Clip a polyline to a rectangle, splitting it where it leaves and re-enters. */
+export function clipPolyline(points, rect) {
+  const out = []
+  let cur = []
+  const flush = () => { if (cur.length > 1) out.push(cur); cur = [] }
+  for (let i = 1; i < points.length; i++) {
+    const seg = clipSegment(points[i - 1], points[i], rect)
+    if (!seg) { flush(); continue }
+    const last = cur[cur.length - 1]
+    if (!last || last[0] !== seg[0][0] || last[1] !== seg[0][1]) { flush(); cur.push(seg[0]) }
+    cur.push(seg[1])
+  }
+  flush()
+  return out
+}

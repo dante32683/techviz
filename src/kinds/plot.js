@@ -6,7 +6,7 @@ import { labelSvg, measure } from '../label.js'
 import { color } from '../theme.js'
 import { compile, compileFor } from '../expr.js'
 import { SpecError } from '../diag.js'
-import { ticks, logTicks, fmt, contours, solveOde, sampleFn } from '../geom.js'
+import { ticks, logTicks, fmt, contours, solveOde, sampleFn, clipPolyline } from '../geom.js'
 
 const fn1 = (src, name, env) => { const { fn } = compileFor(src, [...Object.keys(env), name]); return (v) => fn({ ...env, [name]: v }) }
 const fn2 = (src, env) => { const { fn } = compileFor(src, [...Object.keys(env), 'x', 'y']); return (x, y) => fn({ ...env, x, y }) }
@@ -89,6 +89,12 @@ export default {
     const X = (x) => (xlog ? L + ((Math.log10(x) - Math.log10(xr[0])) / (Math.log10(xr[1]) - Math.log10(xr[0]))) * (R - L) : L + ((x - xr[0]) / (xr[1] - xr[0])) * (R - L))
     const Y = (y) => (ylog ? B - ((Math.log10(y) - Math.log10(yr[0])) / (Math.log10(yr[1]) - Math.log10(yr[0]))) * (B - T) : B - ((y - yr[0]) / (yr[1] - yr[0])) * (B - T))
     const clipId = `${uid}-clip`
+    // Curves are clipped to the plot area in the geometry, not only by clip-path: getBBox()
+    // ignores clip-path, and the Desktop widget host grows an SVG's viewBox and height to its
+    // children's boxes, so a solution curve running far below the frame left a tall blank gap.
+    const curveD = (line) => clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B]).map((p) => pathD(p)).join('')
+    const inside = (x, y) => X(x) >= L - 0.5 && X(x) <= R + 0.5 && Y(y) >= T - 0.5 && Y(y) <= B + 0.5
+    const curve = (line, attrs) => { const d = curveD(line); if (d) plotArea.push(el('path', { d, fill: 'none', ...attrs })) }
     const parts = []
     const defs = [el('clipPath', { id: clipId }, [el('rect', { x: L, y: T, width: R - L, height: B - T })]), arrowMarker(`${uid}-arr`, theme.fg)]
 
@@ -110,7 +116,7 @@ export default {
       parts.push(labelSvg(fmt(v), L - 7, Y(v), theme, { anchor: 'end', size: fs - 1, fill: theme.muted, middle: true }))
     }
     const xt = axisTitle(xa), yt = axisTitle(ya)
-    if (xt) parts.push(labelSvg(xt, (L + R) / 2, H - 10, theme, { fill: theme.fg }))
+    if (xt) parts.push(labelSvg(xt, (L + R) / 2, H - 14, theme, { fill: theme.fg }))
     if (yt) parts.push(`<g transform="translate(${fs + 2},${(T + B) / 2}) rotate(-90)">${labelSvg(yt, 0, 0, theme, { fill: theme.fg })}</g>`)
 
     const plotArea = []
@@ -136,7 +142,7 @@ export default {
       }
       for (const [i, iso] of (spec.isoclines ?? []).entries()) {
         const c = typeof iso === 'object' ? val(iso.value, env, `isoclines[${i}].value`) : val(iso, env, `isoclines[${i}]`)
-        for (const line of contours(f, box, c, 90)) plotArea.push(el('path', { d: pathD(line.map(([x, y]) => [X(x), Y(y)])), fill: 'none', stroke: color('amber'), 'stroke-width': 1.3, 'stroke-dasharray': '5 4' }))
+        for (const line of contours(f, box, c, 90)) curve(line, { stroke: color('amber'), 'stroke-width': 1.3, 'stroke-dasharray': '5 4' })
         const lab = typeof iso === 'object' && iso.label ? iso.label : `m = ${fmt(c)}`
         const lines = contours(f, box, c, 90)
         const longest = lines.sort((a, b) => b.length - a.length)[0]
@@ -147,8 +153,8 @@ export default {
         const from = s.from.map((v) => val(v, env))
         const line = solveOde(f, from, box)
         const c = color(s.color, i)
-        plotArea.push(el('path', { d: pathD(line.map(([x, y]) => [X(x), Y(y)])), fill: 'none', stroke: c, 'stroke-width': 2.2 }))
-        plotArea.push(el('circle', { cx: X(from[0]), cy: Y(from[1]), r: 3.5, fill: c }))
+        curve(line, { stroke: c, 'stroke-width': 2.2 })
+        if (inside(...from)) plotArea.push(el('circle', { cx: X(from[0]), cy: Y(from[1]), r: 3.5, fill: c }))
         if (s.label) parts.push(labelSvg(s.label, X(from[0]) + 6, Y(from[1]) - 6, theme, { anchor: 'start', fill: c }))
       }
     } else if (spec.solutions?.length) diag.warn('solutions', 'solutions need a slopefield with dydx')
@@ -161,9 +167,9 @@ export default {
       const w = (d.s.width ?? 2.2) + (hl.has(d.s.id) ? 1.5 : 0)
       const dash = d.s.style === 'dashed' ? '6 4' : d.s.style === 'dotted' ? '2 3' : undefined
       if (d.dots) {
-        for (const [x, y] of d.lines[0]) plotArea.push(el('circle', { cx: X(x), cy: Y(y), r: 3.4, fill: c }))
-        if (d.s.connect) plotArea.push(el('path', { d: pathD(d.lines[0].map(([x, y]) => [X(x), Y(y)])), fill: 'none', stroke: c, 'stroke-width': 1.4 }))
-      } else for (const line of d.lines) plotArea.push(el('path', { d: pathD(line.map(([x, y]) => [X(x), Y(y)])), fill: 'none', stroke: c, 'stroke-width': w, 'stroke-dasharray': dash, 'stroke-linejoin': 'round' }))
+        for (const [x, y] of d.lines[0]) if (inside(x, y)) plotArea.push(el('circle', { cx: X(x), cy: Y(y), r: 3.4, fill: c }))
+        if (d.s.connect) curve(d.lines[0], { stroke: c, 'stroke-width': 1.4 })
+      } else for (const line of d.lines) curve(line, { stroke: c, 'stroke-width': w, 'stroke-dasharray': dash, 'stroke-linejoin': 'round' })
       if (d.s.label) {
         // Direct label at the last visible point.
         const vis = d.lines.flat().filter(([x, y]) => x >= xr[0] && x <= xr[1] && y >= yr[0] && y <= yr[1])
