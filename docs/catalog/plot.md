@@ -27,7 +27,9 @@
 - `grid: false` hides the grid. `highlight: [series ids]` thickens those curves.
 - `size`: default `[560, 330]`, or `[300, 290]` with a slope field; use a squarer size when x and y
   share units (circles, fields). In widgets keep plots compact: about `[300, 290]` for a field and
-  `[440, 260]` for a function plot; `[460, 420]` is only for a single large figure.
+  `[440, 260]` for a function plot; `[460, 420]` is only for a single large figure. Compact is
+  fine: each widget figure has an expand button (and a click on the plot) that opens it fullscreen,
+  or at the panel's full width where the app doesn't allow fullscreen.
 
 Use params with sliders for "what does τ do" questions; use `steps` to add curves or marks one
 at a time. Summary: the plotted ranges and the series and mark counts.

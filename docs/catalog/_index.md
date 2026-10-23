@@ -55,6 +55,10 @@ height or `overflow:hidden` is needed:
 </div>
 <script src="{{WIDGET_URL}}"></script>
 ```
+Every figure gets an expand button in its corner; it or a click on the drawing opens the figure
+(with its caption) fullscreen, or, where the app's frame blocks fullscreen, at the panel's full
+width with the panel growing to fit. A second click, the button, or Esc shrinks it back. So keep
+grid plots compact and let Dante enlarge the one he's reading; don't size them up for legibility.
 Captions are plain text with Unicode math (y′, x², −), since the widget has no TeX. If no
 kind fits, a hand-written SVG or HTML widget is the fallback: flat, CSS variables for colors
 (`--text-primary`, `--text-secondary`, `--border`, `--bg-accent`), transparent background, no titles.
