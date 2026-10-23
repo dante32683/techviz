@@ -12,7 +12,7 @@ const ORDER = ['blue', 'coral', 'teal', 'purple', 'amber', 'green', 'pink']
 
 export const THEMES = {
   paper: {
-    name: 'paper', bg: '#ffffff', fg: '#111111', muted: '#5f5e5a', faint: '#b4b2a9', grid: '#e4e2da',
+    name: 'paper', bg: '#ffffff', halo: '#ffffff', fg: '#111111', muted: '#5f5e5a', faint: '#b4b2a9', grid: '#e4e2da',
     font: 'Segoe UI, Arial, sans-serif', math: 'Cambria, Cambria Math, Times New Roman, serif',
     mono: 'Consolas, Menlo, monospace', size: 13,
     positive: '#d62828', negative: '#1d5fd6', highlight: '#E24B4A',
@@ -20,13 +20,13 @@ export const THEMES = {
   // Inline PNGs in a dark app. The background is the Desktop app's dark chat
   // color, so the image blends in and still reads in any viewer.
   dark: {
-    name: 'dark', bg: '#151515', fg: '#ECEBE6', muted: '#A9A79F', faint: '#6F6D67', grid: '#2C2C2A',
+    name: 'dark', bg: '#151515', halo: '#151515', fg: '#ECEBE6', muted: '#A9A79F', faint: '#6F6D67', grid: '#2C2C2A',
     font: 'Segoe UI, Arial, sans-serif', math: 'Cambria, Cambria Math, Times New Roman, serif',
     mono: 'Consolas, Menlo, monospace', size: 13,
     positive: '#FF6B6B', negative: '#6EA8FF', highlight: '#FF6B6B',
   },
   host: {
-    name: 'host', bg: null, fg: 'var(--text-primary, #222)', muted: 'var(--text-secondary, #666)',
+    name: 'host', bg: null, halo: 'var(--halo, none)', fg: 'var(--text-primary, #222)', muted: 'var(--text-secondary, #666)',
     faint: 'var(--text-muted, #999)', grid: 'var(--border, #ddd)',
     font: 'var(--font-sans, sans-serif)', math: 'Cambria, Cambria Math, Times New Roman, serif',
     mono: 'var(--font-mono, monospace)', size: 13,

@@ -31,7 +31,8 @@ function readGroup(s, i) {
 
 /** Parse into runs: { text, shift: 0 | -1 (sub) | 1 (sup), upright?: true }. */
 export function parseLabel(src) {
-  const s = String(src ?? '').replace(/\$/g, '')
+  // A hyphen used as minus (after a space or at the start, before a space, digit or letter) prints as −.
+  const s = String(src ?? '').replace(/\$/g, '').replace(/(^|\s|[=({])-(?=[\s\d.a-zA-Z\\(])/g, '$1−')
   const runs = []
   const push = (text, shift, upright) => {
     if (!text) return

@@ -21,6 +21,41 @@ function axisTitle(ax, dflt) {
   return ax.unit ? `${ax.label ?? ''} (\\text{${ax.unit}})`.trim() : ax.label
 }
 
+const LABEL_TS = [0.82, 0.18, 0.65, 0.35, 0.5, 0.92, 0.08, 0.74, 0.26, 0.58, 0.42]
+
+/**
+ * Places each label beside its own curve (path: screen polylines) where its box covers the
+ * fewest drawn strokes and no earlier label, trying spots along the curve and the four
+ * corners around each. Labels with no clear spot take the least crowded one.
+ */
+function placeLabels(waiting, strokes, [L, R, T, B]) {
+  const pts = []
+  for (const line of strokes) for (let i = 1; i < line.length; i++) {
+    const [a, b] = [line[i - 1], line[i]], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 3))
+    for (let k = 0; k <= n; k++) pts.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n])
+  }
+  const taken = [], out = []
+  for (const q of waiting) {
+    const w = measure(q.label, q.size), h = q.size + 2
+    let best = null
+    for (const t of LABEL_TS) {
+      const p = pointAt(q.path, t)
+      if (!p) continue
+      for (const [right, above] of [[true, true], [true, false], [false, true], [false, false]]) {
+        const x = right ? p[0] + 5 : p[0] - 5 - w, y = above ? p[1] - 5 - h : p[1] + 5
+        if (x < L + 2 || x + w > R - 2 || y < T + 2 || y + h > B - 2) continue
+        let hits = taken.some((o) => x < o[2] + 6 && o[0] < x + w + 6 && y < o[3] + 4 && o[1] < y + h + 4) ? 1000 : 0
+        for (const [px, py] of pts) if (px > x - 2 && px < x + w + 2 && py > y - 2 && py < y + h + 2) hits++
+        if (!best || hits < best.hits) best = { hits, box: [x, y, x + w, y + h] }
+        if (!hits) break
+      }
+      if (best && !best.hits) break
+    }
+    if (best) { taken.push(best.box); out.push({ ...q, box: best.box }) }
+  }
+  return out
+}
+
 export default {
   kind: 'plot',
   fields: ['x', 'y', 'series', 'marks', 'slopefield', 'solutions', 'isoclines', 'grid', 'highlight', 'size'],
@@ -138,6 +173,8 @@ export default {
       const n = sf.density ?? Math.min(21, Math.max(10, Math.round((R - L) / 16)))
       const sx = (R - L) / n, sy = (B - T) / Math.round((n * (B - T)) / (R - L))
       const len = Math.min(sx, sy) * 0.62
+      // Screen polylines already drawn, and labels waiting to be placed clear of them.
+      const strokes = [[[L, y0], [R, y0]], [[x0, T], [x0, B]]], waiting = []
       // Slope in screen space accounts for the axis scales; returns the half-segment.
       const half = (m, l) => { const ang = Math.atan2(-m * (B - T) / (yr[1] - yr[0]), (R - L) / (xr[1] - xr[0])); return [(Math.cos(ang) * l) / 2, (Math.sin(ang) * l) / 2] }
       if (!onlyIso) for (let px = L + sx / 2; px < R; px += sx) for (let py = T + sy / 2; py < B; py += sy) {
@@ -147,8 +184,8 @@ export default {
         if (!Number.isFinite(m)) continue
         const [dx, dy] = half(m, len)
         plotArea.push(el('line', { x1: px - dx, y1: py - dy, x2: px + dx, y2: py + dy, stroke: sf.color ? color(sf.color) : theme.muted, 'stroke-width': 1.1, 'stroke-linecap': 'round' }))
+        strokes.push([[px - dx, py - dy], [px + dx, py + dy]])
       }
-      const isoLabels = []
       for (const [i, iso] of (spec.isoclines ?? []).entries()) {
         const obj = typeof iso === 'object'
         const c = obj ? val(iso.value, env, `isoclines[${i}].value`) : val(iso, env, `isoclines[${i}]`)
@@ -158,24 +195,14 @@ export default {
         // Slope marks of slope c spread evenly along the visible part of the isocline.
         const count = obj && iso.marks !== undefined ? iso.marks : onlyIso ? 6 : 0
         const seen = lines.flatMap((line) => clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B]))
+        strokes.push(...seen)
         const [dx, dy] = half(c, len * 1.5)
         for (const [px, py] of pointsAlong(seen, count)) {
           const seg = clipSegment([px - dx, py - dy], [px + dx, py + dy], [L, R, T, B])
-          if (seg) plotArea.push(el('line', { x1: seg[0][0], y1: seg[0][1], x2: seg[1][0], y2: seg[1][1], stroke: sf.color ? color(sf.color) : theme.fg, 'stroke-width': 1.6, 'stroke-linecap': 'round' }))
+          if (seg) { plotArea.push(el('line', { x1: seg[0][0], y1: seg[0][1], x2: seg[1][0], y2: seg[1][1], stroke: sf.color ? color(sf.color) : theme.fg, 'stroke-width': 1.6, 'stroke-linecap': 'round' })); strokes.push(seg) }
         }
         const lab = obj && iso.label ? iso.label : onlyIso ? `c = ${fmt(c)}` : `m = ${fmt(c)}`
-        // The label goes at the first spot along the isocline with a gap to the labels already placed.
-        const w = measure(lab, fs - 1)
-        let spot
-        for (const t of [0.8, 0.2, 0.5, 0.65, 0.35, 0.92, 0.08]) {
-          const p = pointAt(seen, t)
-          if (!p) break
-          const x = p[0] + 4 + w > R ? p[0] - 4 - w : p[0] + 4
-          const boxNow = [x, p[1] - 5 - fs, x + w, p[1] - 3]
-          spot ??= boxNow
-          if (!isoLabels.some((o) => boxNow[0] < o[2] + 10 && o[0] < boxNow[2] + 10 && boxNow[1] < o[3] + 4 && o[1] < boxNow[3] + 4)) { spot = boxNow; break }
-        }
-        if (spot) { isoLabels.push(spot); parts.push(labelSvg(lab, spot[0], spot[3] - 2, theme, { anchor: 'start', size: fs - 1, fill: color('amber') })) }
+        if (seen.length) waiting.push({ label: lab, path: seen, size: fs - 1, fill: color('amber') })
       }
       for (const [i, s] of (spec.solutions ?? []).entries()) {
         if (!Array.isArray(s.from)) throw new SpecError(`solutions[${i}].from`, 'give the initial point as [x0, y0]')
@@ -183,8 +210,19 @@ export default {
         const line = solveOde(f, from, box)
         const c = color(s.color, i)
         curve(line, { stroke: c, 'stroke-width': 2.2 })
-        if (inside(...from)) plotArea.push(el('circle', { cx: X(from[0]), cy: Y(from[1]), r: 3.5, fill: c }))
-        if (s.label) parts.push(labelSvg(s.label, X(from[0]) + 6, Y(from[1]) - 6, theme, { anchor: 'start', fill: c }))
+        const seen = clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B])
+        strokes.push(...seen)
+        if (inside(...from)) {
+          plotArea.push(el('circle', { cx: X(from[0]), cy: Y(from[1]), r: 3.5, fill: c }))
+          strokes.push([[X(from[0]) - 4, Y(from[1])], [X(from[0]) + 4, Y(from[1])]], [[X(from[0]), Y(from[1]) - 4], [X(from[0]), Y(from[1]) + 4]])
+        }
+        if (s.label && seen.length) waiting.unshift({ label: s.label, path: seen, size: fs, fill: c })
+      }
+      // Each label gets a backing box in the background color, so field marks never run through it.
+      for (const q of placeLabels(waiting, strokes, [L, R, T, B])) {
+        const [x1, y1, x2, y2] = q.box
+        parts.push(el('rect', { x: x1 - 2, y: y1 - 1, width: x2 - x1 + 4, height: y2 - y1 + 2, rx: 3, fill: theme.halo, 'fill-opacity': 0.9, class: 'tv-label-bg' }))
+        parts.push(labelSvg(q.label, x1, y2 - 3, theme, { anchor: 'start', size: q.size, fill: q.fill }))
       }
     } else if (spec.solutions?.length) diag.warn('solutions', 'solutions need a slopefield with dydx')
 

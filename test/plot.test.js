@@ -98,3 +98,14 @@ test('marks on an isocline also work with the full field, and only takes "isocli
   assert.equal(bad.svg, null)
   assert.match(bad.text, /only takes "isoclines"/)
 })
+
+// Isocline and solution labels sit clear of the strokes on a backing box, and print minus as −.
+test('isocline labels avoid strokes and use real minus signs', async () => {
+  const spec = { ...isoSpec('x - y', [-2, -1, 0, 1, 2]), solutions: [{ from: [0, 2] }, { from: [0, -1], label: 'y = x - 1' }] }
+  const r = await renderAsync(spec, { theme: 'dark' })
+  assert.ok(r.svg, r.text)
+  assert.equal((r.svg.match(/class="tv-label-bg"/g) ?? []).length, 6)
+  const labels = [...r.svg.matchAll(/<text[^>]*>(.*?)<\/text>/g)].map((m) => m[1].replace(/<[^>]+>/g, ''))
+  assert.ok(labels.some((t) => t.includes('x − 1')), labels.join(', '))
+  assert.ok(labels.some((t) => t.includes('= −2')), labels.join(', '))
+})
