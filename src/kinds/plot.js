@@ -25,14 +25,15 @@ const LABEL_TS = [0.82, 0.18, 0.65, 0.35, 0.5, 0.92, 0.08, 0.74, 0.26, 0.58, 0.4
 
 /**
  * Places each label beside its own curve (path: screen polylines) where its box covers the
- * fewest drawn strokes and no earlier label, trying spots along the curve and the four
- * corners around each. Labels with no clear spot take the least crowded one.
+ * fewest drawn strokes and no earlier label, and sits clearly nearer its own curve than any
+ * other, trying spots along the curve and the four corners around each. Labels with no
+ * clear spot take the least crowded one.
  */
 function placeLabels(waiting, strokes, [L, R, T, B]) {
   const pts = []
-  for (const line of strokes) for (let i = 1; i < line.length; i++) {
+  for (const { line, curve } of strokes) for (let i = 1; i < line.length; i++) {
     const [a, b] = [line[i - 1], line[i]], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 3))
-    for (let k = 0; k <= n; k++) pts.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n])
+    for (let k = 0; k <= n; k++) pts.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n, curve])
   }
   const taken = [], out = []
   for (const q of waiting) {
@@ -45,7 +46,11 @@ function placeLabels(waiting, strokes, [L, R, T, B]) {
         const x = right ? p[0] + 5 : p[0] - 5 - w, y = above ? p[1] - 5 - h : p[1] + 5
         if (x < L + 2 || x + w > R - 2 || y < T + 2 || y + h > B - 2) continue
         let hits = taken.some((o) => x < o[2] + 6 && o[0] < x + w + 6 && y < o[3] + 4 && o[1] < y + h + 4) ? 1000 : 0
-        for (const [px, py] of pts) if (px > x - 2 && px < x + w + 2 && py > y - 2 && py < y + h + 2) hits++
+        for (const [px, py, curve] of pts) {
+          if (px > x - 3 && px < x + w + 3 && py > y - 3 && py < y + h + 3) hits++
+          // Another curve within 10 px makes the label read as belonging to it.
+          else if (curve && curve !== q.path && px > x - 10 && px < x + w + 10 && py > y - 10 && py < y + h + 10) hits += 0.5
+        }
         if (!best || hits < best.hits) best = { hits, box: [x, y, x + w, y + h] }
         if (!hits) break
       }
@@ -174,7 +179,8 @@ export default {
       const sx = (R - L) / n, sy = (B - T) / Math.round((n * (B - T)) / (R - L))
       const len = Math.min(sx, sy) * 0.62
       // Screen polylines already drawn, and labels waiting to be placed clear of them.
-      const strokes = [[[L, y0], [R, y0]], [[x0, T], [x0, B]]], waiting = []
+      // Strokes are { line, curve }: curve is the isocline or solution a line belongs to, if any.
+      const strokes = [{ line: [[L, y0], [R, y0]] }, { line: [[x0, T], [x0, B]] }], waiting = []
       // Slope in screen space accounts for the axis scales; returns the half-segment.
       const half = (m, l) => { const ang = Math.atan2(-m * (B - T) / (yr[1] - yr[0]), (R - L) / (xr[1] - xr[0])); return [(Math.cos(ang) * l) / 2, (Math.sin(ang) * l) / 2] }
       if (!onlyIso) for (let px = L + sx / 2; px < R; px += sx) for (let py = T + sy / 2; py < B; py += sy) {
@@ -184,7 +190,7 @@ export default {
         if (!Number.isFinite(m)) continue
         const [dx, dy] = half(m, len)
         plotArea.push(el('line', { x1: px - dx, y1: py - dy, x2: px + dx, y2: py + dy, stroke: sf.color ? color(sf.color) : theme.muted, 'stroke-width': 1.1, 'stroke-linecap': 'round' }))
-        strokes.push([[px - dx, py - dy], [px + dx, py + dy]])
+        strokes.push({ line: [[px - dx, py - dy], [px + dx, py + dy]] })
       }
       for (const [i, iso] of (spec.isoclines ?? []).entries()) {
         const obj = typeof iso === 'object'
@@ -195,11 +201,11 @@ export default {
         // Slope marks of slope c spread evenly along the visible part of the isocline.
         const count = obj && iso.marks !== undefined ? iso.marks : onlyIso ? 6 : 0
         const seen = lines.flatMap((line) => clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B]))
-        strokes.push(...seen)
+        strokes.push(...seen.map((line) => ({ line, curve: seen })))
         const [dx, dy] = half(c, len * 1.5)
         for (const [px, py] of pointsAlong(seen, count)) {
           const seg = clipSegment([px - dx, py - dy], [px + dx, py + dy], [L, R, T, B])
-          if (seg) { plotArea.push(el('line', { x1: seg[0][0], y1: seg[0][1], x2: seg[1][0], y2: seg[1][1], stroke: sf.color ? color(sf.color) : theme.fg, 'stroke-width': 1.6, 'stroke-linecap': 'round' })); strokes.push(seg) }
+          if (seg) { plotArea.push(el('line', { x1: seg[0][0], y1: seg[0][1], x2: seg[1][0], y2: seg[1][1], stroke: sf.color ? color(sf.color) : theme.fg, 'stroke-width': 1.6, 'stroke-linecap': 'round' })); strokes.push({ line: seg }) }
         }
         const lab = obj && iso.label ? iso.label : onlyIso ? `c = ${fmt(c)}` : `m = ${fmt(c)}`
         if (seen.length) waiting.push({ label: lab, path: seen, size: fs - 1, fill: color('amber') })
@@ -211,10 +217,10 @@ export default {
         const c = color(s.color, i)
         curve(line, { stroke: c, 'stroke-width': 2.2 })
         const seen = clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B])
-        strokes.push(...seen)
+        strokes.push(...seen.map((line) => ({ line, curve: seen })))
         if (inside(...from)) {
           plotArea.push(el('circle', { cx: X(from[0]), cy: Y(from[1]), r: 3.5, fill: c }))
-          strokes.push([[X(from[0]) - 4, Y(from[1])], [X(from[0]) + 4, Y(from[1])]], [[X(from[0]), Y(from[1]) - 4], [X(from[0]), Y(from[1]) + 4]])
+          strokes.push({ line: [[X(from[0]) - 4, Y(from[1])], [X(from[0]) + 4, Y(from[1])]] }, { line: [[X(from[0]), Y(from[1]) - 4], [X(from[0]), Y(from[1]) + 4]] })
         }
         if (s.label && seen.length) waiting.unshift({ label: s.label, path: seen, size: fs, fill: c })
       }
