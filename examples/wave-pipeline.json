@@ -1,0 +1,8 @@
+{"v":1,"kind":"wave",
+ "pipeline":[
+  {"id":"lw","instr":"lw  x1, 0(x2)"},
+  {"id":"add","instr":"add x3, x1, x4","stall":1},
+  {"id":"sub","instr":"sub x5, x3, x6"},
+  {"id":"or","instr":"or  x7, x1, x8"}
+ ],
+ "forward":[{"from":"lw.MEM","to":"add.EX"},{"from":"add.EX","to":"sub.EX"}]}

@@ -1,0 +1,11 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"V1","t":"V","dir":"up","label":"V_{s}","value":"5 V"},
+  {"id":"R1","t":"R","dir":"right","len":4,"label":"R","value":"150\\,\\Omega"},
+  {"id":"D1","t":"led","dir":"down","label":"D_{1}","value":"V_{F} = 2 V"},
+  {"t":"wire","to":"V1.start"},
+  {"t":"ground","from":"V1.start"}
+ ],
+ "currents":[{"on":"R1","label":"I"}],
+ "voltages":[{"across":"R1","label":"v_{R}"}]
+}

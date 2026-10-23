@@ -1,0 +1,21 @@
+{"v":1,"kind":"fsm","machine":"moore",
+ "states":[
+  {"id":"IDLE","init":true,"out":"tx=1"},
+  {"id":"START","out":"tx=0"},
+  {"id":"DATA","out":"tx=d_{i}"},
+  {"id":"STOP","out":"tx=1"}
+ ],
+ "edges":[
+  {"id":"go","from":"IDLE","to":"START","on":"send","act":"i=0"},
+  {"id":"t0","from":"START","to":"DATA","on":"tick"},
+  {"id":"tn","from":"DATA","to":"DATA","on":"tick & i<7","act":"i++"},
+  {"id":"t7","from":"DATA","to":"STOP","on":"tick & i=7"},
+  {"id":"done","from":"STOP","to":"IDLE","on":"tick"}
+ ],
+ "steps":[
+  {"label":"idle, line high","highlight":["IDLE"]},
+  {"label":"send: start bit","highlight":["START","go"]},
+  {"label":"shift out d_0..d_6","highlight":["DATA","tn"]},
+  {"label":"stop bit","highlight":["STOP","t7"]},
+  {"label":"back to idle","highlight":["IDLE","done"]}
+ ]}

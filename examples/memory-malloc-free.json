@@ -1,0 +1,11 @@
+{"v":1,"kind":"memory",
+ "code":["int *p = malloc(3 * sizeof(int));","p[0] = 4;","int *q = p;","free(p);","q[0] = 9;  // use after free"],
+ "frames":[{"id":"main","vars":[
+   {"id":"p","type":"int *","value":"?"},
+   {"id":"q","type":"int *","value":"?"}]}],
+ "steps":[
+   {"label":"malloc","line":1,"add":{"heap":[{"id":"blk","type":"int[3]","cells":["?","?","?"]}]},"set":{"p":{"ptr":"blk"}}},
+   {"label":"p[0] = 4","line":2,"set":{"blk":{"cells":[4,"?","?"]}},"highlight":["blk[0]"]},
+   {"label":"q = p","line":3,"set":{"q":{"ptr":"blk"}},"highlight":["q"]},
+   {"label":"free(p)","line":4,"set":{"blk":{"freed":true}}},
+   {"label":"q[0] = 9","line":5,"highlight":["blk[0]"]}]}

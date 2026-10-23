@@ -1,0 +1,13 @@
+{"v":1,"kind":"fsm","machine":"moore","inputs":["0","1"],"complete":true,
+ "states":[
+  {"id":"S0","init":true,"out":"y=0"},
+  {"id":"S1","out":"y=0"},
+  {"id":"S2","out":"y=0"},
+  {"id":"S3","out":"y=1"}
+ ],
+ "edges":[
+  {"from":"S0","to":"S0","on":"0"},{"from":"S0","to":"S1","on":"1"},
+  {"from":"S1","to":"S1","on":"1"},{"from":"S1","to":"S2","on":"0"},
+  {"from":"S2","to":"S3","on":"1"},{"from":"S2","to":"S0","on":"0"},
+  {"from":"S3","to":"S1","on":"1"},{"from":"S3","to":"S2","on":"0"}
+ ]}

@@ -34,7 +34,7 @@ export const pathD = (list, close = false) =>
 
 /** An arrowhead marker definition, id-scoped so several diagrams on one page don't clash. */
 export function arrowMarker(id, color) {
-  return el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' },
+  return el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' },
     [el('path', { d: 'M0 0L10 5L0 10z', fill: color })])
 }
 

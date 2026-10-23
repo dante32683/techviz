@@ -1,0 +1,8 @@
+{"v":1,"kind":"layout",
+ "struct":{"name":"rec","fields":[
+   {"name":"flag","type":"char"},
+   {"name":"total","type":"double"},
+   {"name":"id","type":"int"},
+   {"name":"tag","type":"char[3]"},
+   {"name":"count","type":"short"}]},
+ "abi":"lp64","reorder":true}

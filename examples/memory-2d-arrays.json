@@ -1,0 +1,12 @@
+{"v":1,"kind":"memory",
+ "frames":[{"id":"main","vars":[
+   {"id":"a","type":"int *","ptr":"strip"},
+   {"id":"grid","type":"int **","ptr":"rows"}]}],
+ "heap":[
+   {"id":"strip","type":"int[3][4]","cells":[0,0,0,0, 0,0,7,0, 0,0,0,0]},
+   {"id":"rows","type":"int *[3]","cells":[{"ptr":"r0"},{"ptr":"r1"},{"ptr":"r2"}]},
+   {"id":"r0","type":"int[4]","cells":[0,0,0,0]},
+   {"id":"r1","type":"int[4]","cells":[0,0,7,0]},
+   {"id":"r2","type":"int[4]","cells":[0,0,0,0]}],
+ "addresses":"off",
+ "highlight":["strip[1][2]","r1[2]"]}

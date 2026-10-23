@@ -1,0 +1,14 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"V1","t":"V","at":[0,6],"dir":"up","len":6,"label":"V_{s}","value":"9 V"},
+  {"t":"wire","dir":"right","len":3},
+  {"id":"R1","t":"R","dir":"down","label":"R_{1}","value":"10\\,k\\Omega"},
+  {"id":"R2","t":"R","label":"R_{2}","value":"5\\,k\\Omega"},
+  {"t":"wire","to":"V1.start"},
+  {"t":"ground","from":"V1.start"},
+  {"t":"wire","from":"R2.start","dir":"right","len":3},
+  {"id":"VM","t":"voltmeter","dir":"down"},
+  {"t":"wire","to":"R2.end"}
+ ],
+ "voltages":[{"across":"R2","label":"v_{out}"}]
+}

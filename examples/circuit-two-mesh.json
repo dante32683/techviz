@@ -1,0 +1,12 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"V1","t":"V","at":[0,3],"dir":"up","label":"V_{1}","value":"10 V"},
+  {"id":"R1","t":"R","dir":"right","len":5,"label":"R_{1}","value":"2\\,\\Omega"},
+  {"id":"R3","t":"R","len":5,"label":"R_{3}","value":"4\\,\\Omega"},
+  {"id":"R2","t":"R","from":"R1.end","dir":"down","label":"R_{2}","value":"6\\,\\Omega"},
+  {"id":"V2","t":"V","at":[10,3],"dir":"up","label":"V_{2}","value":"5 V"},
+  {"t":"wire","from":"V2.start","to":"V1.start"}
+ ],
+ "nodes":{"a":"R1.end","b":"R2.end"},
+ "loops":[{"in":["V1","R1","R2"],"label":"I_{1}","dir":"cw"},{"in":["R2","R3","V2"],"label":"I_{2}","dir":"cw"}]
+}

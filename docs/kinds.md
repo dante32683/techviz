@@ -7,7 +7,7 @@ export default {
   kind: 'circuit',
   fields: ['parts', 'nodes', ...],     // top-level spec keys it reads (others warn)
   collections: ['parts'],              // arrays of items with "id" that steps can set/add/remove
-  async prepare() {},                  // optional: load an engine once (WASM etc.), cache it module-level
+  async prepare(spec) {},              // optional: load an engine once (WASM etc.), cache it module-level
   render(spec, ctx) {                  // synchronous; called after prepare()
     // ctx: { theme, diag, env, uid }
     return { body, width, height, defs, summary, alt }

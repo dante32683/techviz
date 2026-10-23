@@ -23,7 +23,7 @@ function axisTitle(ax, dflt) {
 
 export default {
   kind: 'plot',
-  fields: ['x', 'y', 'series', 'marks', 'slopefield', 'solutions', 'isoclines', 'grid', 'aspect', 'highlight', 'size'],
+  fields: ['x', 'y', 'series', 'marks', 'slopefield', 'solutions', 'isoclines', 'grid', 'highlight', 'size'],
   collections: ['series', 'marks', 'solutions'],
   render(spec, { theme, diag, env, uid }) {
     const W = spec.size?.[0] ?? 560, H = spec.size?.[1] ?? 330

@@ -1,0 +1,17 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"vin","t":"terminal","label":"v_{in}"},
+  {"id":"R1","t":"R","dir":"right","label":"R_{1}","value":"10\\,k\\Omega"},
+  {"t":"wire","len":1},
+  {"id":"U1","t":"opamp","pin":"in-"},
+  {"t":"wire","dir":"right","len":2},
+  {"id":"vout","t":"terminal","label":"v_{out}"},
+  {"t":"wire","from":"U1.in+","dir":"left","len":1},
+  {"t":"wire","dir":"down","len":1},
+  {"t":"ground"},
+  {"t":"wire","from":"R1.end","dir":"up","len":3},
+  {"id":"Rf","t":"R","dir":"right","len":6,"label":"R_{f}","value":"47\\,k\\Omega"},
+  {"t":"wire","dir":"down","len":4}
+ ],
+ "currents":[{"on":"R1","label":"i_{1}"}]
+}

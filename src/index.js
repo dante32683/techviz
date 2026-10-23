@@ -80,7 +80,7 @@ function* walkItems(list) {
  */
 export async function prepare(spec) {
   const kind = KINDS[spec?.kind]
-  if (kind?.prepare) await kind.prepare()
+  if (kind?.prepare) await kind.prepare(spec)
 }
 
 /** prepare() then render(). */

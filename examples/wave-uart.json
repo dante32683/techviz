@@ -1,0 +1,6 @@
+{"v":1,"kind":"wave",
+ "signal":[
+  {"name":"tx","wave":"101.010.101."},
+  {"name":"bit","wave":"z3========3z","data":["start","d0","d1","d2","d3","d4","d5","d6","d7","stop"]}
+ ],
+ "config":{"hscale":1}}

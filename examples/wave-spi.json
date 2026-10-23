@@ -1,0 +1,7 @@
+{"v":1,"kind":"wave",
+ "signal":[
+  {"name":"cs_n","wave":"10................1."},
+  {"name":"sclk","wave":"l..hlhlhlhlhlhlhlhl."},
+  {"name":"mosi","wave":"x.=.=.=.=.=.=.=.=.x.","data":"1 0 1 0 0 1 0 1"},
+  {"name":"miso","wave":"z.=.=.=.=.=.=.=.=.z.","data":"0 0 1 1 1 1 0 0"}
+ ]}

@@ -1,0 +1,8 @@
+{"v":1,"kind":"memory",
+ "frames":[{"id":"main","vars":[
+   {"id":"p","type":"int *","ptr":null},
+   {"id":"q","type":"int *","ptr":"x"},
+   {"id":"x","type":"int","value":"42"}]}],
+ "code":["int x = 42;","int *q = &x;","int *p = NULL;","*p = 1;   // crash: no int at address 0"],
+ "line":4,
+ "highlight":["p"]}

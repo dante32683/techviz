@@ -1,0 +1,15 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"R1","t":"R","at":[0,0],"to":[2,-2],"label":"R_{1}"},
+  {"id":"R2","t":"R","to":[4,0],"label":"R_{2}"},
+  {"id":"R3","t":"R","from":"R1.start","to":[2,2],"label":"R_{3}"},
+  {"id":"Rx","t":"R","to":"R2.end","label":"R_{x}"},
+  {"id":"G","t":"voltmeter","from":"R1.end","to":"R3.end"},
+  {"t":"wire","from":"R1.start","dir":"left","len":1},
+  {"t":"wire","dir":"down","len":4},
+  {"id":"B1","t":"battery","dir":"right","len":6,"label":"V_{s}"},
+  {"t":"wire","dir":"up","len":4},
+  {"t":"wire","to":"R2.end"}
+ ],
+ "nodes":{"a":"R1.start","b":"R1.end","c":"R2.end","d":"R3.end"}
+}

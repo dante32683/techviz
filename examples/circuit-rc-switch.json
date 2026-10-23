@@ -1,0 +1,13 @@
+{"v":1,"kind":"circuit",
+ "parts":[
+  {"id":"V1","t":"V","dir":"up","label":"V_{s}","value":"12 V"},
+  {"id":"S1","t":"switch","dir":"right","value":"t = 0"},
+  {"id":"R1","t":"R","label":"R","value":"2\\,k\\Omega"},
+  {"id":"C1","t":"C","dir":"down","label":"C","value":"100\\,\\mu F"},
+  {"t":"wire","to":"V1.start"}
+ ],
+ "currents":[{"on":"R1","label":"i(t)"}],
+ "voltages":[{"across":"C1","label":"v_{C}(t)"}],
+ "steps":[{"label":"t < 0: switch open"},{"label":"t ≥ 0: switch closed","set":{"S1":{"closed":true}},"highlight":["R1","C1"]}],
+ "step":0
+}

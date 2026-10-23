@@ -1,0 +1,7 @@
+{"v":1,"kind":"memory",
+ "frames":[{"id":"main","vars":[
+   {"id":"x","type":"int","value":"5"},
+   {"id":"p","type":"int *","ptr":"x"},
+   {"id":"pp","type":"int **","ptr":"p"}]}],
+ "code":["int x = 5;","int *p = &x;","int **pp = &p;"],
+ "line":3}
