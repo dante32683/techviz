@@ -31,6 +31,10 @@ pointers, offsets) disagree with what you meant.
 Static (default): `mcp__techviz__visual` with `spec` renders a PNG inline in the chat, in the app's
 theme. `theme: "paper"` and `out` give a white version saved for documents.
 
+Text and math with figures beside them (worked problems, homework sets): write a Markdown panel
+file with ```` ```techviz ```` blocks and show it with `show_panel` (the `techviz-panel` tools;
+`check_panel` first), not `show_widget`.
+
 Interactive (sliders or steps that teach something), or several plots shown together: call
 `show_widget` with exactly this for one spec, the spec as one line of JSON, and nothing else:
 ```html
