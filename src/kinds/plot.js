@@ -118,7 +118,9 @@ export default {
     }
     const xt = axisTitle(xa), yt = axisTitle(ya)
     if (xt) parts.push(labelSvg(xt, (L + R) / 2, H - 14, theme, { fill: theme.fg }))
-    if (yt) parts.push(`<g transform="translate(${fs + 2},${(T + B) / 2}) rotate(-90)">${labelSvg(yt, 0, 0, theme, { fill: theme.fg })}</g>`)
+    // A short y title (y, f(x) is too long) stands upright; a longer one reads bottom to top.
+    if (yt && yt.length <= 3) parts.push(labelSvg(yt, fs + 2, (T + B) / 2, theme, { fill: theme.fg, middle: true }))
+    else if (yt) parts.push(`<g transform="translate(${fs + 2},${(T + B) / 2}) rotate(-90)">${labelSvg(yt, 0, 0, theme, { fill: theme.fg })}</g>`)
 
     const plotArea = []
     const box = [xr[0], xr[1], yr[0], yr[1]]
