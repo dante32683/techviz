@@ -20,8 +20,7 @@ const sansW = (s, size) => measure(raw(s), size)
 const mono = (s, x, y, theme, o = {}) => labelSvg(raw(String(s).replace(/ /g, '\u00a0')), x, y, theme, { mono: true, ...o })
 const sans = (s, x, y, theme, o = {}) => labelSvg(raw(s), x, y, theme, o)
 const hex = (n) => '0x' + n.toString(16)
-// resvg ignores orient="auto-start-reverse" (the core arrowMarker), so arrows that
-// end pointing up or left need a plain orient="auto" marker.
+// Arrowheads follow the path end (orient="auto"; resvg ignores auto-start-reverse).
 const marker = (id, fill) => el('marker', { id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto' }, [el('path', { d: 'M0 0L10 5L0 10z', fill })])
 
 // Vertical metrics.
