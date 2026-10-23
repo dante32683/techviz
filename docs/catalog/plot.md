@@ -17,7 +17,12 @@
   - Values may be expressions of params (`"tau"`, `"5*(1-exp(-1))"`).
 - `slopefield: {dydx: "expr in x and y", density?, color?}` draws short slope segments (density
   defaults to about one per 16px, at most 21 across).
-  - `isoclines: [0, 1]` or `[{value, label}]`: dashed curves where dy/dx equals the value.
+  - `isoclines: [0, 1]` or `[{value, label, marks}]`: dashed curves where dy/dx equals the value,
+    labeled `m = value` (or `c = value` with `only`). `marks: n` adds n slope marks of that slope
+    spread evenly along the visible isocline.
+  - `only: "isoclines"` in `slopefield` drops the grid of marks and gives each isocline 6 marks:
+    the isocline method, the figure a student sketches by hand. Any isocline shape works
+    (vertical lines `x = c`, parabolas, hyperbolas).
   - `solutions: [{from: [x0, y0], label?, color?}]`: RK4 curves through the point, both ways.
 - `grid: false` hides the grid. `highlight: [series ids]` thickens those curves.
 - `size`: default `[560, 330]`, or `[300, 290]` with a slope field; use a squarer size when x and y
@@ -39,6 +44,13 @@ at a time. Summary: the plotted ranges and the series and mark counts.
 ```json
 {"v":1,"kind":"plot","x":{"label":"x","range":[-3,3]},"y":{"label":"y","range":[-3,3]},
  "slopefield":{"dydx":"x - y"},"isoclines":[0,1],"solutions":[{"from":[0,1],"label":"y(0)=1"}]}
+```
+
+Isocline method for y′ = x: isoclines x = c with slope marks, and three solution curves.
+```json
+{"v":1,"kind":"plot","x":{"label":"x","range":[-3,3]},"y":{"label":"y","range":[-3,3]},
+ "slopefield":{"dydx":"x","only":"isoclines"},"isoclines":[-2,-1,0,1,2],
+ "solutions":[{"from":[0,-1]},{"from":[0,0]},{"from":[0,1]}]}
 ```
 
 ```json

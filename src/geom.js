@@ -146,3 +146,25 @@ export function clipPolyline(points, rect) {
   flush()
   return out
 }
+
+/** The point a fraction t (0 to 1) of the way along a set of polylines, by length. */
+export function pointAt(lines, t) {
+  const segs = []
+  let total = 0
+  for (const line of lines) for (let i = 1; i < line.length; i++) {
+    const len = Math.hypot(line[i][0] - line[i - 1][0], line[i][1] - line[i - 1][1])
+    if (len > 0) { segs.push([line[i - 1], line[i], total, len]); total += len }
+  }
+  if (!total) return null
+  const at = Math.min(1, Math.max(0, t)) * total
+  const [a, b, start, len] = segs.find(([, , st, l]) => st + l >= at) ?? segs[segs.length - 1]
+  const u = Math.min(1, Math.max(0, (at - start) / len))
+  return [a[0] + u * (b[0] - a[0]), a[1] + u * (b[1] - a[1])]
+}
+
+/** n points spread evenly by length over a set of polylines, each centred in its share. */
+export function pointsAlong(lines, n) {
+  const out = []
+  for (let k = 0; k < n; k++) { const p = pointAt(lines, (k + 0.5) / n); if (p) out.push(p) }
+  return out
+}

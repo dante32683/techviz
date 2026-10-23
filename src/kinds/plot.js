@@ -6,7 +6,7 @@ import { labelSvg, measure } from '../label.js'
 import { color } from '../theme.js'
 import { compile, compileFor } from '../expr.js'
 import { SpecError } from '../diag.js'
-import { ticks, logTicks, fmt, contours, solveOde, sampleFn, clipPolyline } from '../geom.js'
+import { ticks, logTicks, fmt, contours, solveOde, sampleFn, clipPolyline, clipSegment, pointsAlong, pointAt } from '../geom.js'
 
 const fn1 = (src, name, env) => { const { fn } = compileFor(src, [...Object.keys(env), name]); return (v) => fn({ ...env, [name]: v }) }
 const fn2 = (src, env) => { const { fn } = compileFor(src, [...Object.keys(env), 'x', 'y']); return (x, y) => fn({ ...env, x, y }) }
@@ -123,32 +123,57 @@ export default {
     const plotArea = []
     const box = [xr[0], xr[1], yr[0], yr[1]]
 
-    // Slope field: short equal-length segments of slope f(x, y).
+    // Slope field: short equal-length segments of slope f(x, y), on a grid or, with
+    // only: "isoclines", just along the isoclines (the method used to sketch one by hand).
     if (spec.slopefield) {
       const sf = spec.slopefield
       if (typeof sf.dydx !== 'string') throw new SpecError('slopefield.dydx', 'give dy/dx as an expression in x and y, like "x - y"')
+      if (sf.only !== undefined && sf.only !== 'isoclines') throw new SpecError('slopefield.only', 'only takes "isoclines"')
+      const onlyIso = sf.only === 'isoclines'
+      if (onlyIso && !spec.isoclines?.length) diag.warn('isoclines', 'only: "isoclines" draws nothing without isoclines')
       const f = fn2(sf.dydx, env)
       // About one segment per 16px, so a compact frame isn't crowded.
       const n = sf.density ?? Math.min(21, Math.max(10, Math.round((R - L) / 16)))
       const sx = (R - L) / n, sy = (B - T) / Math.round((n * (B - T)) / (R - L))
       const len = Math.min(sx, sy) * 0.62
-      for (let px = L + sx / 2; px < R; px += sx) for (let py = T + sy / 2; py < B; py += sy) {
+      // Slope in screen space accounts for the axis scales; returns the half-segment.
+      const half = (m, l) => { const ang = Math.atan2(-m * (B - T) / (yr[1] - yr[0]), (R - L) / (xr[1] - xr[0])); return [(Math.cos(ang) * l) / 2, (Math.sin(ang) * l) / 2] }
+      if (!onlyIso) for (let px = L + sx / 2; px < R; px += sx) for (let py = T + sy / 2; py < B; py += sy) {
         const x = xr[0] + ((px - L) / (R - L)) * (xr[1] - xr[0]), y = yr[0] + ((B - py) / (B - T)) * (yr[1] - yr[0])
         let m
         try { m = f(x, y) } catch { continue }
         if (!Number.isFinite(m)) continue
-        // Slope in screen space accounts for the axis scales.
-        const ang = Math.atan2(-m * (B - T) / (yr[1] - yr[0]), (R - L) / (xr[1] - xr[0]))
-        const dx = (Math.cos(ang) * len) / 2, dy = (Math.sin(ang) * len) / 2
+        const [dx, dy] = half(m, len)
         plotArea.push(el('line', { x1: px - dx, y1: py - dy, x2: px + dx, y2: py + dy, stroke: sf.color ? color(sf.color) : theme.muted, 'stroke-width': 1.1, 'stroke-linecap': 'round' }))
       }
+      const isoLabels = []
       for (const [i, iso] of (spec.isoclines ?? []).entries()) {
-        const c = typeof iso === 'object' ? val(iso.value, env, `isoclines[${i}].value`) : val(iso, env, `isoclines[${i}]`)
-        for (const line of contours(f, box, c, 90)) curve(line, { stroke: color('amber'), 'stroke-width': 1.3, 'stroke-dasharray': '5 4' })
-        const lab = typeof iso === 'object' && iso.label ? iso.label : `m = ${fmt(c)}`
+        const obj = typeof iso === 'object'
+        const c = obj ? val(iso.value, env, `isoclines[${i}].value`) : val(iso, env, `isoclines[${i}]`)
         const lines = contours(f, box, c, 90)
-        const longest = lines.sort((a, b) => b.length - a.length)[0]
-        if (longest) { const p = longest[Math.floor(longest.length * 0.8)]; parts.push(labelSvg(lab, X(p[0]) + 4, Y(p[1]) - 5, theme, { anchor: 'start', size: fs - 1, fill: color('amber') })) }
+        if (!lines.length) diag.warn(`isoclines[${i}]`, `dy/dx never equals ${fmt(c)} in the plotted range`)
+        for (const line of lines) curve(line, { stroke: color('amber'), 'stroke-width': 1.3, 'stroke-dasharray': '5 4' })
+        // Slope marks of slope c spread evenly along the visible part of the isocline.
+        const count = obj && iso.marks !== undefined ? iso.marks : onlyIso ? 6 : 0
+        const seen = lines.flatMap((line) => clipPolyline(line.map(([x, y]) => [X(x), Y(y)]), [L, R, T, B]))
+        const [dx, dy] = half(c, len * 1.5)
+        for (const [px, py] of pointsAlong(seen, count)) {
+          const seg = clipSegment([px - dx, py - dy], [px + dx, py + dy], [L, R, T, B])
+          if (seg) plotArea.push(el('line', { x1: seg[0][0], y1: seg[0][1], x2: seg[1][0], y2: seg[1][1], stroke: sf.color ? color(sf.color) : theme.fg, 'stroke-width': 1.6, 'stroke-linecap': 'round' }))
+        }
+        const lab = obj && iso.label ? iso.label : onlyIso ? `c = ${fmt(c)}` : `m = ${fmt(c)}`
+        // The label goes at the first spot along the isocline with a gap to the labels already placed.
+        const w = measure(lab, fs - 1)
+        let spot
+        for (const t of [0.8, 0.2, 0.5, 0.65, 0.35, 0.92, 0.08]) {
+          const p = pointAt(seen, t)
+          if (!p) break
+          const x = p[0] + 4 + w > R ? p[0] - 4 - w : p[0] + 4
+          const boxNow = [x, p[1] - 5 - fs, x + w, p[1] - 3]
+          spot ??= boxNow
+          if (!isoLabels.some((o) => boxNow[0] < o[2] + 10 && o[0] < boxNow[2] + 10 && boxNow[1] < o[3] + 4 && o[1] < boxNow[3] + 4)) { spot = boxNow; break }
+        }
+        if (spot) { isoLabels.push(spot); parts.push(labelSvg(lab, spot[0], spot[3] - 2, theme, { anchor: 'start', size: fs - 1, fill: color('amber') })) }
       }
       for (const [i, s] of (spec.solutions ?? []).entries()) {
         if (!Array.isArray(s.from)) throw new SpecError(`solutions[${i}].from`, 'give the initial point as [x0, y0]')
