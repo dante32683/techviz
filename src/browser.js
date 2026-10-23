@@ -5,8 +5,13 @@
 import { render, prepare, parseLabel } from './index.js'
 
 const css = `
-.tv-wrap{display:block;margin:0.25rem 0}
+.tv-wrap{display:block;margin:0}
 .tv-svg svg{max-width:100%;height:auto;display:block;margin:0 auto}
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px 20px;align-items:start}
+.tv-item{min-width:0}
+.tv-item .tv-svg svg{margin:0}
+.tv-cap{margin:0 0 4px;font-size:14px;line-height:1.35;color:var(--text-primary)}
+.tv-cap small{display:block;font-size:13px;color:var(--text-secondary)}
 .tv-controls{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin-top:8px;font-size:13px;color:var(--text-secondary)}
 .tv-param{display:flex;align-items:center;gap:8px}
 .tv-param input[type=range]{width:150px;accent-color:#378ADD}

@@ -23,20 +23,38 @@ Shared fields:
 - Expressions: `+ - * / ^`, parentheses, implicit multiplication (`2x`), `sin cos tan exp ln log10
   sqrt abs min max step atan2`, `pi`, `e`, params by name. JSON strings need `\\` for one backslash.
 
-Rules: labels only inside a diagram (no titles, captions, or sentences: explain in the chat). One
-visual per answer unless asked. Read the returned summary and diagnostics and fix the spec when the
-picture or its computed facts (nets, pointers, offsets) disagree with what you meant.
+Rules: labels only inside a diagram (no titles or sentences: explain in the chat; the one exception
+is the short caption per plot in a widget grid, below). One visual per answer unless asked. Read the
+returned summary and diagnostics and fix the spec when the picture or its computed facts (nets,
+pointers, offsets) disagree with what you meant.
 
 Static (default): `mcp__techviz__visual` with `spec` renders a PNG inline in the chat, in the app's
 theme. `theme: "paper"` and `out` give a white version saved for documents.
 
-Interactive (sliders or steps that teach something): call `show_widget` with exactly this, the
-spec as one line of JSON, and nothing else:
+Interactive (sliders or steps that teach something), or several plots shown together: call
+`show_widget` with exactly this for one spec, the spec as one line of JSON, and nothing else:
 ```html
-<div data-techviz-placeholder style="padding:1rem 0;color:var(--text-secondary)">Loading diagram…</div>
+<div data-techviz-placeholder style="color:var(--text-secondary)">Loading diagram…</div>
 <script type="application/json" data-techviz>{"v":1,"kind":"plot",...}</script>
 <script src="{{WIDGET_URL}}"></script>
 ```
-Several specs may share one widget (repeat the first two lines; one script tag at the end). If no
+Several specs go in one widget, each under its own short caption (a problem number and the
+equation), with the `tv-grid` layout: the bundle styles it, fills the width with as many columns
+as fit (about 260px each, one column on a narrow pane), keeps the spacing tight, and the widget's
+height hugs the drawings. Use it for a set of related plots, such as homework parts, instead of
+several widgets or a long stack; keep the full working in the chat text. No wrapper with a fixed
+height or `overflow:hidden` is needed:
+```html
+<div class="tv-grid">
+<div class="tv-item"><p class="tv-cap"><b>#3</b> y′ = y − x<small>Dashed: isocline y = x + 1</small></p>
+<div data-techviz-placeholder style="color:var(--text-secondary)">Loading…</div>
+<script type="application/json" data-techviz>{"v":1,"kind":"plot",...}</script></div>
+<div class="tv-item"><p class="tv-cap"><b>#15</b> y′ = x</p>
+<div data-techviz-placeholder style="color:var(--text-secondary)">Loading…</div>
+<script type="application/json" data-techviz>{"v":1,"kind":"plot",...}</script></div>
+</div>
+<script src="{{WIDGET_URL}}"></script>
+```
+Captions are plain text with Unicode math (y′, x², −), since the widget has no TeX. If no
 kind fits, a hand-written SVG or HTML widget is the fallback: flat, CSS variables for colors
 (`--text-primary`, `--text-secondary`, `--border`, `--bg-accent`), transparent background, no titles.

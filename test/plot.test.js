@@ -49,3 +49,10 @@ test('clipPolyline splits a curve where it leaves and re-enters', async () => {
   const parts = clipPolyline([[0, 0], [2, 0], [2, 5], [4, 5], [4, 1], [6, 1]], [0, 5, 0, 2])
   assert.deepEqual(parts, [[[0, 0], [2, 0], [2, 2]], [[4, 2], [4, 1], [5, 1]]])
 })
+
+test('a slope field defaults to a compact frame; other plots stay wide', async () => {
+  const field = await renderAsync({ v: 1, kind: 'plot', x: { range: [-3, 3] }, y: { range: [-3, 3] }, slopefield: { dydx: 'x - y' } })
+  assert.match(field.svg, /viewBox="0 0 300 290"/)
+  const fn = await renderAsync({ v: 1, kind: 'plot', x: { range: [0, 1] }, series: [{ y: 'x' }] })
+  assert.match(fn.svg, /viewBox="0 0 560 330"/)
+})

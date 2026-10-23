@@ -26,7 +26,8 @@ export default {
   fields: ['x', 'y', 'series', 'marks', 'slopefield', 'solutions', 'isoclines', 'grid', 'highlight', 'size'],
   collections: ['series', 'marks', 'solutions'],
   render(spec, { theme, diag, env, uid }) {
-    const W = spec.size?.[0] ?? 560, H = spec.size?.[1] ?? 330
+    // A slope field defaults to a compact, near-square frame; other plots to a wide one.
+    const [W, H] = spec.size ?? (spec.slopefield ? [300, 290] : [560, 330])
     const xa = spec.x ?? {}, ya = spec.y ?? {}
     if (!Array.isArray(xa.range) || xa.range.length !== 2) throw new SpecError('x.range', 'give the x range as [min, max]')
     const xr = xa.range.map((v, i) => val(v, env, `x.range[${i}]`))
@@ -127,7 +128,8 @@ export default {
       const sf = spec.slopefield
       if (typeof sf.dydx !== 'string') throw new SpecError('slopefield.dydx', 'give dy/dx as an expression in x and y, like "x - y"')
       const f = fn2(sf.dydx, env)
-      const n = sf.density ?? 21
+      // About one segment per 16px, so a compact frame isn't crowded.
+      const n = sf.density ?? Math.min(21, Math.max(10, Math.round((R - L) / 16)))
       const sx = (R - L) / n, sy = (B - T) / Math.round((n * (B - T)) / (R - L))
       const len = Math.min(sx, sy) * 0.62
       for (let px = L + sx / 2; px < R; px += sx) for (let py = T + sy / 2; py < B; py += sy) {
