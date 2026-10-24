@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // techviz CLI: render a spec to SVG and PNG files.
-//   node src/cli.js render <spec.json | -> [--out <dir>] [--name <base>] [--theme paper|dark|host]
+//   node src/cli.js render <spec.json | -> [--out <dir>] [--name <base>] [--theme paper|dark|light|host]
 //                          [--scale 2] [--step N] [--no-png]
 //   node src/cli.js check <spec.json | ->
 // Prints one JSON line: { ok, svg, png, width, height, diagnostics, summary }.
@@ -18,7 +18,7 @@ const flag = (name) => rest.includes(`--${name}`)
 function out(o) { process.stdout.write(JSON.stringify(o) + '\n') }
 
 if (!['render', 'check'].includes(cmd) || !file) {
-  process.stderr.write('usage: techviz render|check <spec.json|-> [--out dir] [--name base] [--theme paper|dark|host] [--scale 2] [--step N] [--no-png]\n')
+  process.stderr.write('usage: techviz render|check <spec.json|-> [--out dir] [--name base] [--theme paper|dark|light|host] [--scale 2] [--step N] [--no-png]\n')
   process.exit(2)
 }
 

@@ -6,7 +6,7 @@ import { renderAsync } from '../src/index.js'
 const load = (f) => JSON.parse(readFileSync(`examples/${f}`, 'utf8'))
 
 for (const f of readdirSync('examples').filter((f) => f.startsWith('wave-'))) {
-  for (const theme of ['paper', 'dark', 'host']) {
+  for (const theme of ['paper', 'dark', 'light', 'host']) {
     test(`${f} renders in ${theme}`, async () => {
       const r = await renderAsync(load(f), { theme, uid: 'w' })
       assert.ok(r.svg, r.text)

@@ -114,6 +114,10 @@ const WIDTHS = [
 ]
 const charWidth = (ch) => { for (const [re, w] of WIDTHS) if (re.test(ch)) return w; return 0.54 }
 
+// The table is Segoe UI's; Anthropic Sans, the app themes' font, runs about 6% wider.
+// Every theme uses the wider figure, so a narrower font only gets a little more room.
+const FONT_SCALE = 1.06
+
 /** Approximate rendered width in px at font size `size`. */
 export function measure(label, size = 13) {
   let w = 0
@@ -121,7 +125,7 @@ export function measure(label, size = 13) {
     const k = r.shift ? 0.72 : 1
     for (const ch of r.text) w += charWidth(ch) * size * k
   }
-  return w
+  return w * FONT_SCALE
 }
 
 /**

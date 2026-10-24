@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { renderAsync } from '../src/index.js'
 
 for (const f of readdirSync('examples').filter((f) => f.startsWith('layout-'))) {
-  for (const theme of ['paper', 'dark', 'host']) {
+  for (const theme of ['paper', 'dark', 'light', 'host']) {
     test(`${f} renders in ${theme}`, async () => {
       const r = await renderAsync(JSON.parse(readFileSync(`examples/${f}`, 'utf8')), { theme })
       assert.ok(r.svg, r.text)

@@ -8,7 +8,7 @@ const load = (f) => JSON.parse(readFileSync(`examples/${f}`, 'utf8'))
 for (const f of readdirSync('examples').filter((f) => f.startsWith('memory-'))) {
   const spec = load(f)
   const steps = spec.steps?.length ? [...spec.steps.keys()] : [undefined]
-  for (const theme of ['paper', 'dark', 'host']) {
+  for (const theme of ['paper', 'dark', 'light', 'host']) {
     for (const step of steps) {
       test(`${f} renders in ${theme}${step === undefined ? '' : ` at step ${step}`}`, async () => {
         const r = await renderAsync(spec, { theme, step })

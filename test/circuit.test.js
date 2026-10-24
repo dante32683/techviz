@@ -8,7 +8,7 @@ const spec = (parts, extra = {}) => ({ v: 1, kind: 'circuit', parts, ...extra })
 const warnings = (r) => r.diagnostics.filter((d) => d.level === 'warning')
 
 for (const f of readdirSync('examples').filter((f) => f.startsWith('circuit-'))) {
-  for (const theme of ['paper', 'dark', 'host']) {
+  for (const theme of ['paper', 'dark', 'light', 'host']) {
     test(`${f} renders cleanly in ${theme}`, async () => {
       const r = await renderAsync(load(f), { theme })
       assert.ok(r.svg, r.text)

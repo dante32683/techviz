@@ -31,8 +31,10 @@ export default {
 
 - Colors only from `ctx.theme` roles (`fg`, `muted`, `faint`, `grid`, `bg`,
   `positive`, `negative`, `highlight`) and `color(name|index)` from
-  `src/theme.js`. Three themes must all read well: `paper` (white, documents),
-  `dark` (#151515 background), `host` (CSS variables in the chat widget).
+  `src/theme.js`. Four themes must all read well: `paper` (white, documents),
+  `dark` (#191919, the Claude app's dark chat), `light` (white, the app's light
+  chat), `host` (CSS variables in the chat widget). `dark` and `light` use the
+  app's Anthropic Sans when it is in the techviz fonts folder (`src/raster.js`).
   Tinted fills: a palette color with `fill-opacity` 0.15-0.25, so they work on
   light and dark.
 - Text through `labelSvg` and `measure` from `src/label.js` (TeX-like labels:

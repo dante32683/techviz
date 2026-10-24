@@ -92,7 +92,7 @@ export async function renderAsync(spec, opts = {}) {
 }
 
 /**
- * Render a spec. Options: theme ('paper' | 'dark' | 'host'), params (overrides),
+ * Render a spec. Options: theme ('paper' | 'dark' | 'light' | 'host'), params (overrides),
  * step (index; default the last), uid (prefix for ids in the SVG).
  * Returns { svg?, width, height, diagnostics: [{level, path, msg}], text, controls, summary }.
  */
