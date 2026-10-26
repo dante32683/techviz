@@ -140,7 +140,8 @@ export function mount(script) {
     const input = document.createElement('input')
     Object.assign(input, { type: 'range', min: p.min, max: p.max, step: p.step, value: p.value })
     const out = document.createElement('span'); out.className = 'tv-val'
-    const show = () => { out.textContent = fmtVal(Number(input.value), p.step) + (p.unit ? ' ' + p.unit : '') }
+    // A space before a unit (1.0 ms), none before a degree or percent sign (30°).
+    const show = () => { out.textContent = fmtVal(Number(input.value), p.step) + (p.unit ? (/^[°′″%]$/.test(p.unit) ? '' : ' ') + p.unit : '') }
     show()
     input.addEventListener('input', () => { state.params[p.name] = Number(input.value); show(); redraw() })
     wrap.append(labelHtml(p.label), input, out)
