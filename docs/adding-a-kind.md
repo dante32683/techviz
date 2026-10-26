@@ -25,7 +25,9 @@ diagrams, `src/kinds/fbd/`) is the worked reference: read it alongside this page
    node src/cli.js render src/kinds/<kind>/examples/<name>.json --out out --theme light
    ```
    Look for labels on lines or on each other, clipped edges, wrong directions, and unreadable
-   colors. Fix and re-render until they're clean.
+   colors. Fix and re-render until they're clean. Panels (`techviz-panel`) show a figure 300 px
+   wide and the widget grid about 260 px, so also check that labels stay readable at that width;
+   `node ~/dev/techviz-panel/preview.mjs <panel.md> <out.html>` previews a panel in a browser.
 5. **Test and build.** `npm test`, then `npm run build` (rebuilds `dist/techviz.js`, the
    widget bundle). `test/kinds.test.js` checks every registered kind automatically: the folder
    layout, the catalog title and length, every example rendering in all four themes and every
@@ -64,7 +66,11 @@ export default {
   offsets, force sums). Make it catch mistakes. `ctx.diag.note(path, msg)` adds a fact.
 - Errors: throw `new SpecError(path, message)` for anything that stops the render;
   `ctx.diag.warn(path, msg)` for suspicious but drawable input. Paths look like
-  `panels[1].forces[2].dir`; messages say what to write instead.
+  `panels[1].forces[2].dir`; messages say what to write instead. Keep the levels apart:
+  techviz-panel and the widget hook list warnings and errors as problems to fix, and notes
+  as facts to compare with the intent.
+- `size`: only a kind that lists `size` in `fields` and reads `spec.size` takes it (plot);
+  the others size the canvas to their content, and the panel and widget scale the SVG.
 - Layout is declarative: specs never hold pixel coordinates. Use words, named points, a
   coarse unit grid, or automatic placement (fbd: bodies on a surface, `at: "end"`, `dir: "uphill"`).
 
