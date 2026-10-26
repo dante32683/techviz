@@ -18,7 +18,9 @@ import { arrowCands, ringCands, extent, placeLabels, drawLabels, drawField } fro
 
 const U = 56 // px per layout unit
 const DEFAULT_LEN = 70, MAX_LEN = 92, MIN_LEN = 26
-const BELOW = 40 // px under a ground line that labels keep clear of
+// px under a ground line that labels keep clear of: just the hatching under level ground, where a
+// weight arrow often runs through the floor, and more under an incline, where nothing belongs.
+const BELOW = 14, BELOW_INCLINE = 40
 const K3 = 0.5 * Math.SQRT1_2 // oblique depth: +z (out of the page) draws down-left at half length
 const SCENE = ['body', 'bodies', 'forces', 'connections', 'supports', 'loads', 'moments', 'angles', 'dims', 'surface', 'field', 'axes', 'net']
 const TYPES = ['point', 'block', 'bar', 'disk', 'pulley']
@@ -399,10 +401,10 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
   if (surf) {
     const down = V.mul(surf.n, -1)
     // Labels keep off the strip under the ground line: one there reads as cut off from its arrow.
-    const below = (a, b) => { cv.fill([a, b, V.add(b, [0, BELOW]), V.add(a, [0, BELOW])], 'below', 0.9); cv.ground = [a, b] }
+    const below = (a, b, depth) => { cv.fill([a, b, V.add(b, [0, depth]), V.add(a, [0, depth])], 'below', 0.9); cv.ground = [a, b] }
     if (surf.ang === 0) {
       hatched(cv, surf.A, surf.B, down, theme.muted)
-      below(surf.A, surf.B)
+      below(surf.A, surf.B, BELOW)
       if (surf.edge) {
         const corner = surf.edge === 'right' ? surf.B : surf.A
         hatched(cv, corner, V.add(corner, [0, 1.3 * U]), [surf.edge === 'right' ? -1 : 1, 0], theme.muted)
@@ -414,7 +416,7 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
       cv.trace([low, high, C], 'surface', 1, true)
       const ext = 0.3 * U * Math.sign(C[0] - low[0])
       hatched(cv, V.add(low, [-ext, 0]), V.add(C, [ext, 0]), [0, 1], theme.muted)
-      below(V.add(low, [-ext, 0]), V.add(C, [ext, 0]))
+      below(V.add(low, [-ext, 0]), V.add(C, [ext, 0]), BELOW_INCLINE)
       const a1 = degOf(V.sub(C, low)), a2 = a1 + shortSweep(a1, degOf(V.sub(high, low)))
       const R = 0.75 * U
       const arc = arcPoints(low, R, a1, a2)

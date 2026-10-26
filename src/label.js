@@ -162,6 +162,8 @@ export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.s
   // With the app's Anthropic Sans, resvg sets every plain piece of a <text> in a bold serif
   // fallback once any piece holds a glyph the font lacks. Starting each piece at its own x
   // (a new text chunk) keeps the fallback to that piece, so those labels are laid out by hand.
+  // An italic letter right after a subscript leans back into it (m_{1}g): give it a little room.
+  const kern = (k) => (k > 0 && runs[k - 1].shift === -1 && runs[k].shift === 0 && runs[k].italic ? size * 0.12 : undefined)
   let xs = null
   if (/Anthropic Sans/.test(theme.font) && runs.some((r) => r.vec || MATH_GLYPHS.test(r.text))) {
     // Here the width has to be close, not generous: the table is near Anthropic Sans's own
@@ -169,14 +171,14 @@ export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.s
     const widths = runs.map((r) => (measure([r], size) / FONT_SCALE) * (r.italic || r.math || r.vec ? 0.9 : 1))
     const total = widths.reduce((a, b) => a + b, 0)
     let cx = x - (anchor === 'middle' ? total / 2 : anchor === 'end' ? total : 0)
-    xs = widths.map((w) => { const at = cx; cx += w; return at.toFixed(2) })
+    xs = widths.map((w, k) => { const at = cx + (kern(k) ?? 0); cx += w + (kern(k) ?? 0); return at.toFixed(2) })
   }
   let dyAcc = 0
   const spans = runs.map((r, k) => {
     const target = r.shift === -1 ? size * 0.3 : r.shift === 1 ? -size * 0.42 : 0
     const dy = target - dyAcc
     dyAcc = target
-    const a = { x: xs?.[k], dy: dy ? dy.toFixed(2) : undefined }
+    const a = { x: xs?.[k], dx: !xs && kern(k) ? kern(k).toFixed(2) : undefined, dy: dy ? dy.toFixed(2) : undefined }
     if (r.shift) a['font-size'] = (size * 0.72).toFixed(1)
     if (r.italic) { a['font-style'] = 'italic'; a['font-family'] = theme.math }
     else if (r.vec) a['font-family'] = `Cambria Math, ${theme.math}`

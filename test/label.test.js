@@ -30,3 +30,8 @@ test('in the app themes, a label with italic Greek places each piece itself (no 
   }
   assert.doesNotMatch(labelSvg('mg', 0, 0, THEMES.dark), /<tspan x="/)
 })
+
+test('an italic letter after a subscript gets a little room (m_{1}g)', () => {
+  assert.match(labelSvg('m_{1}g', 0, 0, THEMES.paper), /<tspan dx="[\d.]+"[^>]*font-style="italic"[^>]*>g</)
+  assert.doesNotMatch(labelSvg('V_{in}', 0, 0, THEMES.paper), /dx=/)
+})
