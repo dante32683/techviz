@@ -10,6 +10,8 @@ Kinds (call the catalog with a kind for its fields):
 - `wave`: timing diagrams (WaveJSON), register bitfields, pipeline charts.
 - `fsm`: Moore and Mealy state machines; any directed graph via DOT.
 - `plot`: functions, parametric curves, data, marks, slope fields with solutions.
+- `fbd`: free-body and system diagrams: forces on blocks, bars and points, inclines, ropes, pulleys,
+  springs, supports and reactions, beam loads, angle arcs, E and B fields, right-hand-rule triads.
 
 Shared fields:
 - `params`: named constants for expressions, each `{"value", "min", "max", "step", "unit", "label"}`.

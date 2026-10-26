@@ -1,0 +1,6 @@
+{"v":1,"kind":"fbd","surface":{"edge":"right"},
+ "bodies":[{"id":"A","label":"m_{A}"},{"id":"P","type":"pulley","at":"edge"},{"id":"B","label":"m_{B}","hang":"P","w":0.9,"h":0.9}],
+ "connections":[{"from":"A.right","over":["P"],"to":"B.top","tension":"T"},
+  {"type":"spring","from":"A.left","dir":"left","length":1.4,"label":"k","force":"F_{s}"}],
+ "forces":[{"on":"A","dir":"up","label":"N"},{"on":"A","dir":"down","label":"m_{A}g"},{"on":"A","at":"bottom","dir":"left","label":"f_{k}"},
+  {"on":"B","dir":"down","label":"m_{B}g"}]}

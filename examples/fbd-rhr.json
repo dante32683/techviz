@@ -1,0 +1,3 @@
+{"v":1,"kind":"fbd","body":{"type":"point","label":"+q"},"axes":"3d",
+ "forces":[{"id":"v","dir":"right","label":"v","vector":true},{"id":"B","dir":"in","label":"B","vector":true},
+  {"id":"F","cross":["v","B"],"label":"F"}]}

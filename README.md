@@ -1,10 +1,10 @@
 # techviz
 
 Renders technical diagrams from short JSON specs: circuit schematics, memory
-and pointer diagrams, struct layouts, timing diagrams, state machines, and
-plots. You describe what the diagram shows; techviz does the layout and
+and pointer diagrams, struct layouts, timing diagrams, state machines,
+plots, and free-body diagrams. You describe what the diagram shows; techviz does the layout and
 returns an SVG, a PNG, and a one-line summary of computed facts (nets,
-pointer targets, offsets) that can be checked against what you meant.
+pointer targets, offsets, force sums) that can be checked against what you meant.
 
 I built it so Claude can draw clean diagrams while helping with engineering
 coursework. It runs as a command-line tool, a Node library, and a browser
@@ -26,6 +26,7 @@ Code.
 | `wave` | Timing diagrams (WaveJSON), register bitfields, pipeline charts |
 | `fsm` | Moore and Mealy state machines, or any directed graph |
 | `plot` | Functions, parametric curves, data, and slope fields |
+| `fbd` | Free-body diagrams: forces, inclines, ropes and pulleys, supports and beam loads, fields |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

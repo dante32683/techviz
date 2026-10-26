@@ -1,0 +1,7 @@
+{"v":1,"kind":"fbd","unit":"N","field":{"dir":"in","label":"B"},
+ "panels":[
+  {"caption":"T = 0","body":{"type":"bar","label":"12 g","current":"right"},
+   "forces":[{"dir":"up","mag":0.1176,"label":"F_{B}"},{"dir":"down","mag":0.1176,"label":"mg"}]},
+  {"caption":"I \\text{ reversed}","body":{"type":"bar","label":"12 g","current":"left"},
+   "forces":[{"at":"start","dir":"up","mag":0.1176,"label":"T"},{"at":"end","dir":"up","mag":0.1176,"label":"T"},
+    {"dir":"down","mag":0.1176,"label":"mg"},{"dir":"down","mag":0.1176,"label":"F_{B}"}]}]}

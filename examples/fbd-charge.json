@@ -1,0 +1,3 @@
+{"v":1,"kind":"fbd","unit":"N","body":{"type":"point","label":"q_{3}"},"axes":true,"net":true,
+ "forces":[{"id":"F13","dir":0,"mag":2.4,"label":"F_{13}"},{"id":"F23","dir":125,"mag":1.8,"label":"F_{23}"}],
+ "angles":[{"force":"F23","from":"horizontal","label":"55°"}]}
