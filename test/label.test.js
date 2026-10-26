@@ -22,3 +22,11 @@ test('a vector letter is drawn from its math-italic code point in Cambria Math',
   assert.match(svg, /font-family="Cambria Math, [^"]*">\u{1d463}⃗</u)
   assert.doesNotMatch(svg, /font-style="italic"/)
 })
+
+test('in the app themes, a label with italic Greek places each piece itself (no bold serif fallback)', () => {
+  // resvg sets plain pieces in a bold serif once any piece needs another font, unless each starts a new chunk.
+  for (const label of ['mg\\sin\\theta', '\\theta', '\\vec{v}']) {
+    assert.match(labelSvg(label, 0, 0, THEMES.dark), /<tspan x="/, label)
+  }
+  assert.doesNotMatch(labelSvg('mg', 0, 0, THEMES.dark), /<tspan x="/)
+})

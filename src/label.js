@@ -163,7 +163,7 @@ export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.s
   // fallback once any piece holds a glyph the font lacks. Starting each piece at its own x
   // (a new text chunk) keeps the fallback to that piece, so those labels are laid out by hand.
   let xs = null
-  if (/Anthropic Sans/.test(theme.font) && runs.some((r) => r.math || r.vec)) {
+  if (/Anthropic Sans/.test(theme.font) && runs.some((r) => r.vec || MATH_GLYPHS.test(r.text))) {
     // Here the width has to be close, not generous: the table is near Anthropic Sans's own
     // advances, and the math font's italic runs about 10% narrower (checked with fontTools).
     const widths = runs.map((r) => (measure([r], size) / FONT_SCALE) * (r.italic || r.math || r.vec ? 0.9 : 1))
