@@ -1,4 +1,4 @@
-# memory
+# memory: stack, heap, globals, pointers, arrays, code traces
 
 Stack frames, heap blocks, and globals with pointer arrows (Python Tutor style) for C and C++.
 Stack on the left (newest frame on top, globals above it), heap to the right in columns by

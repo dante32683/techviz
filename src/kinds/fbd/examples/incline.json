@@ -1,5 +1,5 @@
 {"v":1,"kind":"fbd","unit":"N","surface":{"angle":30,"label":"30°"},"body":{"label":"m"},"axes":{"angle":"surface"},
  "forces":[{"id":"N","dir":"normal","mag":16.97,"label":"N"},
-  {"id":"mg","dir":"down","mag":19.6,"label":"mg","components":["mg_{x}","mg_{y}"]},
+  {"id":"mg","dir":"down","mag":19.6,"label":"mg","components":["mg\\sin\\theta","mg\\cos\\theta"]},
   {"id":"f","dir":"uphill","mag":9.8,"label":"f_{s}"}],
  "angles":[{"force":"mg","from":"mg.y","label":"\\theta"}]}

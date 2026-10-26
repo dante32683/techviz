@@ -4,14 +4,7 @@ A visual is one JSON spec: `{"v": 1, "kind": "<kind>", ...}`. The renderer does 
 layout; write what the diagram shows, never coordinates in pixels.
 
 Kinds (call the catalog with a kind for its fields):
-- `circuit`: schematics in IEC symbols, turtle placement, nets checked.
-- `memory`: stack, heap, globals, pointers, arrays, code traces.
-- `layout`: struct padding and offsets, endianness, address maps.
-- `wave`: timing diagrams (WaveJSON), register bitfields, pipeline charts.
-- `fsm`: Moore and Mealy state machines; any directed graph via DOT.
-- `plot`: functions, parametric curves, data, marks, slope fields with solutions.
-- `fbd`: free-body and system diagrams: forces on blocks, bars and points, inclines, ropes, pulleys,
-  springs, supports and reactions, beam loads, angle arcs, E and B fields, right-hand-rule triads.
+{{KINDS}}
 
 Shared fields:
 - `params`: named constants for expressions, each `{"value", "min", "max", "step", "unit", "label"}`.

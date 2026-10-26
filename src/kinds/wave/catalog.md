@@ -1,4 +1,4 @@
-# wave: timing diagrams, register bitfields, pipeline diagrams
+# wave: timing diagrams (WaveJSON), register bitfields, pipeline charts
 
 One of three modes per spec: `signal` (WaveJSON timing), `reg` (bitfield), or `pipeline`.
 

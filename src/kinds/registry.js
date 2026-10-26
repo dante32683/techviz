@@ -1,9 +1,11 @@
-import plot from './plot.js'
-import circuit from './circuit.js'
-import memory from './memory.js'
-import layout from './layout.js'
-import wave from './wave.js'
-import fsm from './fsm.js'
-import fbd from './fbd.js'
+// Every kind, by name. A kind is a folder in src/kinds/ (see docs/adding-a-kind.md);
+// adding one is one import here and its name in the list.
+import plot from './plot/index.js'
+import circuit from './circuit/index.js'
+import memory from './memory/index.js'
+import layout from './layout/index.js'
+import wave from './wave/index.js'
+import fsm from './fsm/index.js'
+import fbd from './fbd/index.js'
 
-export const KINDS = { plot, circuit, memory, layout, wave, fsm, fbd }
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd].map((k) => [k.kind, k]))

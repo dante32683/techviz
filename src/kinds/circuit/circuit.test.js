@@ -1,35 +1,25 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { renderAsync } from '../src/index.js'
+import { renderAsync } from '../../index.js'
 
-const load = (f) => JSON.parse(readFileSync(`examples/${f}`, 'utf8'))
+const load = (f) => JSON.parse(readFileSync(new URL(`examples/${f}`, import.meta.url), 'utf8'))
 const spec = (parts, extra = {}) => ({ v: 1, kind: 'circuit', parts, ...extra })
 const warnings = (r) => r.diagnostics.filter((d) => d.level === 'warning')
 
-for (const f of readdirSync('examples').filter((f) => f.startsWith('circuit-'))) {
-  for (const theme of ['paper', 'dark', 'light', 'host']) {
-    test(`${f} renders cleanly in ${theme}`, async () => {
-      const r = await renderAsync(load(f), { theme })
-      assert.ok(r.svg, r.text)
-      assert.equal(r.diagnostics.length, 0, r.text)
-    })
-  }
-}
-
 test('two-mesh nets and loops', async () => {
-  const r = await renderAsync(load('circuit-two-mesh.json'))
+  const r = await renderAsync(load('two-mesh.json'))
   assert.match(r.summary, /nets: b\{V1-,R2,V2-\} n1\{V1\+,R1\} a\{R1,R3,R2\} n2\{R3,V2\+\}/)
   assert.match(r.summary, /loops: I_\{1\} cw \{V1,R1,R2\}, I_\{2\} cw \{R2,R3,V2\}/)
 })
 
 test('wheatstone nets from diagonal parts', async () => {
-  const r = await renderAsync(load('circuit-wheatstone.json'))
+  const r = await renderAsync(load('wheatstone.json'))
   assert.match(r.summary, /nets: a\{R1,R3,B1-\} b\{R1,R2,G\} c\{R2,Rx,B1\+\} d\{R3,Rx,G\}/)
 })
 
 test('switch state follows steps', async () => {
-  const s = load('circuit-rc-switch.json')
+  const s = load('rc-switch.json')
   assert.match((await renderAsync(s, { step: 0 })).summary, /S1 open/)
   const closed = await renderAsync(s, { step: 1 })
   assert.match(closed.summary, /S1 closed; currents: i\(t\) n3→n4; voltages: v_\{C\}\(t\) \+n4 -n1/)

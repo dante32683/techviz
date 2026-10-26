@@ -4,11 +4,11 @@
 //   bytes:  a multi-byte value's bytes at increasing addresses, little- and/or big-endian;
 //   map:    an address map (a vertical bar of regions, high addresses at the top).
 
-import { el } from '../svg.js'
-import { labelSvg, measure } from '../label.js'
-import { color } from '../theme.js'
-import { SpecError } from '../diag.js'
-import { structLayout, bestOrder, ABI_NAMES, parseAddr, fmtSize } from './memory/ctype.js'
+import { el } from '../../svg.js'
+import { labelSvg, measure } from '../../label.js'
+import { color } from '../../theme.js'
+import { SpecError } from '../../diag.js'
+import { structLayout, bestOrder, ABI_NAMES, parseAddr, fmtSize } from '../../ctype.js'
 
 const raw = (s) => [{ text: String(s), shift: 0 }]
 const monoW = (s, size) => String(s).length * size * 0.55

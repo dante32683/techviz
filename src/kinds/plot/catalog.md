@@ -1,4 +1,4 @@
-# plot: functions, data, marks, slope fields
+# plot: functions, parametric curves, data, marks, slope fields with solutions
 
 - `x`, `y`: axes `{label, unit?, range: [min, max], log?}`. `x.range` is required; `y.range`
   defaults to fit the curves. The title reads `label (unit)`; `log: true` needs a positive range.

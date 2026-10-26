@@ -1,11 +1,11 @@
 // wave: digital timing diagrams and register bitfields (WaveJSON, drawn by
 // WaveDrom and restyled to the theme), and pipeline diagrams (drawn here).
 
-import { SpecError } from '../diag.js'
-import { loadWavedrom, wavedrom } from './wave/engine.js'
-import { restyle } from './wave/restyle.js'
-import { checkSignals, checkReg, flatten } from './wave/check.js'
-import { renderPipeline } from './wave/pipeline.js'
+import { SpecError } from '../../diag.js'
+import { loadWavedrom, wavedrom } from './engine.js'
+import { restyle } from './restyle.js'
+import { checkSignals, checkReg, flatten } from './check.js'
+import { renderPipeline } from './pipeline.js'
 
 export default {
   kind: 'wave',

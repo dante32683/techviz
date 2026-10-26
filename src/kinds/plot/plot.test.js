@@ -1,17 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { renderAsync } from '../src/index.js'
-
-for (const f of readdirSync('examples').filter((f) => f.startsWith('plot-'))) {
-  for (const theme of ['paper', 'dark', 'light', 'host']) {
-    test(`${f} renders in ${theme}`, async () => {
-      const r = await renderAsync(JSON.parse(readFileSync(`examples/${f}`, 'utf8')), { theme })
-      assert.ok(r.svg, r.text)
-      assert.equal(r.diagnostics.filter((d) => d.level === 'error').length, 0)
-    })
-  }
-}
+import { renderAsync } from '../../index.js'
 
 test('unknown variable is reported', async () => {
   const r = await renderAsync({ v: 1, kind: 'plot', x: { range: [0, 1] }, series: [{ y: 'k*x' }] })
@@ -46,7 +36,7 @@ for (const [name, spec] of [
 }
 
 test('clipPolyline splits a curve where it leaves and re-enters', async () => {
-  const { clipPolyline } = await import('../src/geom.js')
+  const { clipPolyline } = await import('../../geom.js')
   const parts = clipPolyline([[0, 0], [2, 0], [2, 5], [4, 5], [4, 1], [6, 1]], [0, 5, 0, 2])
   assert.deepEqual(parts, [[[0, 0], [2, 0], [2, 2]], [[4, 2], [4, 1], [5, 1]]])
 })

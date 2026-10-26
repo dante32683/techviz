@@ -1,4 +1,4 @@
-# layout
+# layout: struct padding and offsets, endianness, address maps
 
 Byte-level layouts. Give exactly one of `struct`, `bytes`, or `map`.
 

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "esbuild src/browser.js --bundle --minify --format=iife --global-name=techviz --outfile=dist/techviz.js",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.js src/kinds/*/*.test.js"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

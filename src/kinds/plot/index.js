@@ -1,12 +1,12 @@
 // plot: 2D graphs of functions, parametric curves, data points, reference marks,
 // and slope fields with solution curves (dy/dx = f(x, y)).
 
-import { el, pathD, arrowMarker } from '../svg.js'
-import { labelSvg, measure } from '../label.js'
-import { color } from '../theme.js'
-import { compile, compileFor } from '../expr.js'
-import { SpecError } from '../diag.js'
-import { ticks, logTicks, fmt, contours, solveOde, sampleFn, clipPolyline, clipSegment, pointsAlong, pointAt } from '../geom.js'
+import { el, pathD, arrowMarker } from '../../svg.js'
+import { labelSvg, measure } from '../../label.js'
+import { color } from '../../theme.js'
+import { compile, compileFor } from '../../expr.js'
+import { SpecError } from '../../diag.js'
+import { ticks, logTicks, fmt, contours, solveOde, sampleFn, clipPolyline, clipSegment, pointsAlong, pointAt } from '../../geom.js'
 
 const fn1 = (src, name, env) => { const { fn } = compileFor(src, [...Object.keys(env), name]); return (v) => fn({ ...env, [name]: v }) }
 const fn2 = (src, env) => { const { fn } = compileFor(src, [...Object.keys(env), 'x', 'y']); return (x, y) => fn({ ...env, x, y }) }

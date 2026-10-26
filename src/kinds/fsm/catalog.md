@@ -1,4 +1,4 @@
-# fsm: state machines and directed graphs (Graphviz)
+# fsm: Moore and Mealy state machines; any directed graph via DOT
 
 Either `states` + `edges` (a state machine) or `dot` (any directed graph).
 

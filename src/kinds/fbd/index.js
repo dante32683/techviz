@@ -8,13 +8,13 @@
 // Several panels sit side by side, each with a caption. Each body's vector sum
 // (and moment sum about a bar's start, given its span) comes back as a note.
 
-import { el, pathD } from '../svg.js'
-import { color } from '../theme.js'
-import { compileFor } from '../expr.js'
-import { SpecError } from '../diag.js'
-import { labelSvg, measure } from '../label.js'
-import { V, dirOf, degOf, Canvas, insidePoly, circlePoly, arrow, hatched, spring, arcPoints, shortSweep } from './fbd/draw.js'
-import { arrowCands, ringCands, extent, placeLabels, drawLabels, drawField } from './fbd/place.js'
+import { el, pathD } from '../../svg.js'
+import { color } from '../../theme.js'
+import { compileFor } from '../../expr.js'
+import { SpecError } from '../../diag.js'
+import { labelSvg, measure } from '../../label.js'
+import { V, dirOf, degOf, Canvas, insidePoly, circlePoly, arrow, hatched, spring, arcPoints, shortSweep } from './draw.js'
+import { arrowCands, ringCands, extent, placeLabels, drawLabels, drawField } from './place.js'
 
 const U = 56 // px per layout unit
 const DEFAULT_LEN = 70, MAX_LEN = 92, MIN_LEN = 26

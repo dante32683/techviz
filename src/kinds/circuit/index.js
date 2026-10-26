@@ -1,12 +1,12 @@
 // circuit: schematics drawn turtle-style (each part starts where the last one
 // ended), IEC 60617 symbols, with a computed netlist for checking topology.
 
-import { el } from '../svg.js'
-import { labelSvg } from '../label.js'
-import { color } from '../theme.js'
-import { SpecError } from '../diag.js'
-import { U, TWO, MULTI, POINT, TYPES, frame, drawTwo, drawMulti, drawGround, arrowHead, plusSign, minusSign, line, polyline, circle } from './circuit/parts.js'
-import { Board, block, boxAt, LINE } from './circuit/layout.js'
+import { el } from '../../svg.js'
+import { labelSvg } from '../../label.js'
+import { color } from '../../theme.js'
+import { SpecError } from '../../diag.js'
+import { U, TWO, MULTI, POINT, TYPES, frame, drawTwo, drawMulti, drawGround, arrowHead, plusSign, minusSign, line, polyline, circle } from './parts.js'
+import { Board, block, boxAt, LINE } from './layout.js'
 
 const KEYS = new Set(['id', 't', 'dir', 'len', 'from', 'at', 'to', 'via', 'label', 'value', 'closed', 'flip', 'pin', 'side'])
 const DIRS = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] }

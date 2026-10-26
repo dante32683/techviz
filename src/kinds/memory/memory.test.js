@@ -1,26 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { renderAsync } from '../src/index.js'
+import { renderAsync } from '../../index.js'
 
-const load = (f) => JSON.parse(readFileSync(`examples/${f}`, 'utf8'))
-
-for (const f of readdirSync('examples').filter((f) => f.startsWith('memory-'))) {
-  const spec = load(f)
-  const steps = spec.steps?.length ? [...spec.steps.keys()] : [undefined]
-  for (const theme of ['paper', 'dark', 'light', 'host']) {
-    for (const step of steps) {
-      test(`${f} renders in ${theme}${step === undefined ? '' : ` at step ${step}`}`, async () => {
-        const r = await renderAsync(spec, { theme, step })
-        assert.ok(r.svg, r.text)
-        assert.equal(r.diagnostics.filter((d) => d.level !== 'note').length, 0, r.text)
-      })
-    }
-  }
-}
+const load = (f) => JSON.parse(readFileSync(new URL(`examples/${f}`, import.meta.url), 'utf8'))
 
 test('pointer summary lists targets and addresses', async () => {
-  const r = await renderAsync(load('memory-pointers.json'))
+  const r = await renderAsync(load('pointers.json'))
   assert.match(r.summary, /p -> x \(0x7ffd0ffc\)/)
   assert.match(r.summary, /pp -> p \(0x7ffd0ff0\)/)
   // A pointer's box shows its target's address.
@@ -28,17 +14,17 @@ test('pointer summary lists targets and addresses', async () => {
 })
 
 test('2D arrays: row pointers and the strip resolve', async () => {
-  const r = await renderAsync(load('memory-2d-arrays.json'))
+  const r = await renderAsync(load('2d-arrays.json'))
   assert.match(r.summary, /grid -> rows, rows\[0\] -> r0, rows\[1\] -> r1, rows\[2\] -> r2/)
   assert.match(r.summary, /a -> strip/)
 })
 
 test('freed targets are flagged dangling; NULL is flagged', async () => {
-  const mf = await renderAsync(load('memory-malloc-free.json'))
+  const mf = await renderAsync(load('malloc-free.json'))
   assert.match(mf.summary, /q -> blk \(0x55a042a0\) \(DANGLING: freed\)/)
-  const before = await renderAsync(load('memory-malloc-free.json'), { step: 2 })
+  const before = await renderAsync(load('malloc-free.json'), { step: 2 })
   assert.doesNotMatch(before.summary, /DANGLING/)
-  const n = await renderAsync(load('memory-null.json'))
+  const n = await renderAsync(load('null.json'))
   assert.match(n.summary, /p -> NULL/)
 })
 

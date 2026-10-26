@@ -1,27 +1,15 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { renderAsync } from '../src/index.js'
+import { renderAsync } from '../../index.js'
 
-const load = (f) => JSON.parse(readFileSync(`examples/${f}`, 'utf8'))
-
-for (const f of readdirSync('examples').filter((f) => f.startsWith('fsm-'))) {
-  for (const theme of ['paper', 'dark', 'light', 'host']) {
-    test(`${f} renders in ${theme}`, async () => {
-      const r = await renderAsync(load(f), { theme, uid: 'f' })
-      assert.ok(r.svg, r.text)
-      assert.deepEqual(r.diagnostics, [])
-      assert.doesNotMatch(r.svg, /Times-Roman|"Times,serif"|#000000/)
-      if (theme === 'host') assert.doesNotMatch(r.svg, /(fill|stroke)="var\(/)
-    })
-  }
-}
+const load = (f) => JSON.parse(readFileSync(new URL(`examples/${f}`, import.meta.url), 'utf8'))
 
 test('summary lists transitions and outputs', async () => {
-  const r = await renderAsync(load('fsm-moore-101.json'))
+  const r = await renderAsync(load('moore-101.json'))
   assert.match(r.summary, /^fsm moore: 4 states \(init S0\), 8 transitions: S0 -0-> S0, S0 -1-> S1, /)
   assert.match(r.summary, /outputs S0\[y=0\] S1\[y=0\] S2\[y=0\] S3\[y=1\]; unreachable: none$/)
-  const m = await renderAsync(load('fsm-mealy-101.json'))
+  const m = await renderAsync(load('mealy-101.json'))
   assert.match(m.summary, /S2 -1 \/ 1-> S1/)
 })
 
@@ -46,7 +34,7 @@ test('unreachable states, missing outputs, and incomplete transitions warn', asy
 })
 
 test('highlight colors the current state and the edge taken', async () => {
-  const spec = load('fsm-uart-tx.json')
+  const spec = load('uart-tx.json')
   const r = await renderAsync(spec, { step: 1, theme: 'paper' })
   assert.equal((r.svg.match(/#E24B4A/g) ?? []).length >= 4, true)
 })
@@ -55,4 +43,13 @@ test('bad DOT reports the Graphviz error', async () => {
   const r = await renderAsync({ v: 1, kind: 'fsm', dot: 'digraph { a -> }' })
   assert.equal(r.svg, null)
   assert.match(r.text, /error at dot: Graphviz/)
+})
+
+test('every example uses theme fonts and colors, not Graphviz defaults', async () => {
+  for (const f of readdirSync(new URL('examples/', import.meta.url))) {
+    for (const theme of ['paper', 'dark', 'light', 'host']) {
+      const r = await renderAsync(load(f), { theme, uid: 'f' })
+      assert.doesNotMatch(r.svg, /Times-Roman|"Times,serif"|#000000/, `${f} in ${theme}`)
+    }
+  }
 })

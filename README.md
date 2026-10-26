@@ -30,8 +30,8 @@ Code.
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for
-each kind is in [`docs/catalog/`](docs/catalog/), and
-[`examples/`](examples/) has 3 to 6 specs per kind.
+each kind is its `catalog.md` in [`src/kinds/<kind>/`](src/kinds/), beside 3 to 6
+example specs in its `examples/` folder.
 
 ## Example
 
@@ -58,13 +58,15 @@ The voltage divider above is this spec:
 
 ```bash
 npm install
-node src/cli.js render examples/circuit-divider.json --out out --theme paper
-node src/cli.js check examples/circuit-divider.json
+node src/cli.js render src/kinds/circuit/examples/divider.json --out out --theme paper
+node src/cli.js check src/kinds/circuit/examples/divider.json
+node src/cli.js catalog fbd
 ```
 
-`render` writes an SVG and a PNG (`--theme paper|dark|host`, `--scale`,
+`render` writes an SVG and a PNG (`--theme paper|dark|light|host`, `--scale`,
 `--step N`) and prints one JSON line with the file paths, size, diagnostics,
-and summary. `check` validates a spec without drawing it.
+and summary. `check` validates a spec without drawing it. `catalog [kind ...]`
+prints the spec reference Claude reads, and `kinds` lists the kinds.
 
 As a library:
 
@@ -89,7 +91,8 @@ npm test        # renders every example in all three themes and checks computed 
 npm run build   # rebuilds dist/techviz.js
 ```
 
-[`docs/kinds.md`](docs/kinds.md) explains how to add a kind. `probe/` is a
+[`docs/adding-a-kind.md`](docs/adding-a-kind.md) is the checklist for adding a kind,
+with `fbd` as the worked example. `probe/` is a
 small script that checks what a host page's sandbox allows.
 
 MIT licensed.

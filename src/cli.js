@@ -4,6 +4,8 @@
 //                          [--scale 2] [--step N] [--no-png]
 //   node src/cli.js check <spec.json | ->
 // Prints one JSON line: { ok, svg, png, width, height, diagnostics, summary }.
+//   node src/cli.js kinds                                  one JSON line: [{ kind, summary }]
+//   node src/cli.js catalog [kind ...] [--widget-url URL]  the spec reference as text
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -17,8 +19,17 @@ const flag = (name) => rest.includes(`--${name}`)
 
 function out(o) { process.stdout.write(JSON.stringify(o) + '\n') }
 
+if (cmd === 'kinds' || cmd === 'catalog') {
+  const { kindList, catalogText } = await import('./catalog.js')
+  const args = process.argv.slice(3)
+  const at = args.indexOf('--widget-url')
+  const url = at >= 0 ? args.splice(at, 2)[1] : undefined
+  process.stdout.write(cmd === 'kinds' ? JSON.stringify(kindList()) + '\n' : catalogText(args, url) + '\n')
+  process.exit(0)
+}
+
 if (!['render', 'check'].includes(cmd) || !file) {
-  process.stderr.write('usage: techviz render|check <spec.json|-> [--out dir] [--name base] [--theme paper|dark|light|host] [--scale 2] [--step N] [--no-png]\n')
+  process.stderr.write('usage: techviz render|check <spec.json|-> [--out dir] [--name base] [--theme paper|dark|light|host] [--scale 2] [--step N] [--no-png]\n       techviz kinds | catalog [kind ...] [--widget-url URL]\n')
   process.exit(2)
 }
 

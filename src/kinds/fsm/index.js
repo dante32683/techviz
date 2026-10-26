@@ -1,10 +1,10 @@
 // fsm: state machines (Moore and Mealy) and general directed graphs (raw DOT),
 // laid out by Graphviz (viz-js WASM) and drawn here in the theme.
 
-import { SpecError } from '../diag.js'
-import { labelSvg, measure, parseLabel } from '../label.js'
-import { loadViz, getViz } from './fsm/engine.js'
-import { drawGraph } from './fsm/xdot.js'
+import { SpecError } from '../../diag.js'
+import { labelSvg, measure, parseLabel } from '../../label.js'
+import { loadViz, getViz } from './engine.js'
+import { drawGraph } from './xdot.js'
 
 const q = (s) => `"${String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`
 const plain = (label) => parseLabel(label).map((r) => r.text).join('')

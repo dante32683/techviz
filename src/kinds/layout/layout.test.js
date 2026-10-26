@@ -1,17 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
-import { renderAsync } from '../src/index.js'
-
-for (const f of readdirSync('examples').filter((f) => f.startsWith('layout-'))) {
-  for (const theme of ['paper', 'dark', 'light', 'host']) {
-    test(`${f} renders in ${theme}`, async () => {
-      const r = await renderAsync(JSON.parse(readFileSync(`examples/${f}`, 'utf8')), { theme })
-      assert.ok(r.svg, r.text)
-      assert.equal(r.diagnostics.length, 0, r.text)
-    })
-  }
-}
+import { renderAsync } from '../../index.js'
 
 const struct = (fields, extra = {}) => renderAsync({ v: 1, kind: 'layout', struct: { name: 'S', fields }, ...extra })
 

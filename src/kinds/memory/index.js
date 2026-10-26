@@ -5,12 +5,12 @@
 // with "addresses": "auto" each item gets a plausible address and a pointer's
 // box shows its target's address. Arrows are routed orthogonally around boxes.
 
-import { el } from '../svg.js'
-import { labelSvg, measure } from '../label.js'
-import { color } from '../theme.js'
-import { SpecError } from '../diag.js'
-import { typeInfo, structLayout, ABI_NAMES } from './memory/ctype.js'
-import { Router, roundedPath } from './memory/route.js'
+import { el } from '../../svg.js'
+import { labelSvg, measure } from '../../label.js'
+import { color } from '../../theme.js'
+import { SpecError } from '../../diag.js'
+import { typeInfo, structLayout, ABI_NAMES } from '../../ctype.js'
+import { Router, roundedPath } from './route.js'
 
 const raw = (s) => [{ text: String(s), shift: 0 }]
 const MONO = 0.55
