@@ -1,5 +1,6 @@
 {"v":1,"kind":"fbd","unit":"kN","body":{"type":"bar","id":"beam","length":5,"span":6},
- "forces":[{"at":0.25,"dir":"down","push":true,"mag":10,"label":"10 kN"}],
+ "forces":[{"id":"P","at":0.25,"dir":"down","push":true,"mag":10,"label":"10 kN"}],
+ "dims":[{"to":"P","label":"1.5 m"},{"from":"P","to":0.5,"label":"1.5 m"},{"from":0.5,"label":"3 m"},{"unit":"m"}],
  "loads":[{"from":0.5,"to":1,"w":1,"mag":12,"label":"4\\text{ kN/m}"}],
  "panels":[
   {"caption":"beam","supports":[{"type":"pin","at":"start"},{"type":"roller","at":"end"}]},

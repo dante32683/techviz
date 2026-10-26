@@ -18,8 +18,9 @@ import { arrowCands, ringCands, extent, placeLabels, drawLabels, drawField } fro
 
 const U = 56 // px per layout unit
 const DEFAULT_LEN = 70, MAX_LEN = 92, MIN_LEN = 26
+const BELOW = 40 // px under a ground line that labels keep clear of
 const K3 = 0.5 * Math.SQRT1_2 // oblique depth: +z (out of the page) draws down-left at half length
-const SCENE = ['body', 'bodies', 'forces', 'connections', 'supports', 'loads', 'moments', 'angles', 'surface', 'field', 'axes', 'net']
+const SCENE = ['body', 'bodies', 'forces', 'connections', 'supports', 'loads', 'moments', 'angles', 'dims', 'surface', 'field', 'axes', 'net']
 const TYPES = ['point', 'block', 'bar', 'disk', 'pulley']
 const NAMED = {
   center: [0, 0], top: [0, 1], bottom: [0, -1], left: [-1, 0], right: [1, 0],
@@ -135,6 +136,18 @@ function resolve(scene, pp, env, diag) {
       const margin = ang === 0 ? 0.9 : 1.8
       s0 = first.s - first.w / 2 - (s.edge === 'left' ? 0.35 : margin) * U
       s1 = last.s + last.w / 2 + (s.edge === 'right' ? 0.35 : margin) * U
+      // A steep incline gets a longer slope above the body, to leave room for component labels.
+      const steep = Math.max(0, Math.min(1, (Math.abs(ang) - 35) / 20)) * U
+      if (ang > 0 && s.edge !== 'right') s1 += steep
+      if (ang < 0 && s.edge !== 'left') s0 -= steep
+      // On an incline, run the wedge far enough downhill that a full-length weight arrow and
+      // its label end above the base line (up to 4 units past the body).
+      if (ang !== 0) {
+        const sin = Math.abs(Math.sin((ang * Math.PI) / 180)), cos = Math.cos((ang * Math.PI) / 180)
+        const run = (b) => Math.min(b.w / 2 + 4 * U, Math.max(0, (MAX_LEN + 34 - (b.h / 2) * cos) / sin))
+        if (ang > 0) s0 = Math.min(s0, ...onS.map((b) => b.s - run(b)))
+        else s1 = Math.max(s1, ...onS.map((b) => b.s + run(b)))
+      }
       surf.ends = { left: first, right: last }
     }
     surf.A = V.mul(surf.t, s0)
@@ -210,6 +223,7 @@ function direction(d, b, surf, env, path) {
 function collect(scene, sc, pp, env, diag) {
   const forces = []
   const add = (f) => { forces.push(f); return f }
+  const points = new Map() // force and support ids -> where they act, for dimension lines
   const magOf = (m, path) => (m === undefined || m === null ? null : val(m, env, path))
 
   const user = scene.forces ?? []
@@ -230,6 +244,7 @@ function collect(scene, sc, pp, env, diag) {
       if (mag !== null && mag < 0) { rec.v = rec.v.map((x) => -x); rec.mag = -mag }
     }
     if (f.label === undefined) diag.warn(`${path}.label`, 'a force without a label; add "label" (like "mg" or "F_{N}")')
+    if (f.id !== undefined) points.set(f.id, { body: b, t: a.t })
     add(rec)
   })
   // Vectors from a cross product: F = sign (a × b), as in F = q v × B.
@@ -260,10 +275,11 @@ function collect(scene, sc, pp, env, diag) {
     })
     if (over.length && type !== 'rope') throw new SpecError(`${path}.over`, 'only a rope goes over a pulley')
     let end
+    if (cn.end !== undefined && !['mount', 'free'].includes(cn.end)) throw new SpecError(`${path}.end`, 'end is "mount" (a hatched wall or ceiling, the default) or "free" (a loose end, such as a hand pulling)')
     if (cn.to !== undefined) end = endpoint(cn.to, sc, `${path}.to`)
     else {
       const d = project(direction(cn.dir ?? 'up', a.body, sc.surf, env, `${path}.dir`))
-      end = { p: V.add(a.p, V.mul(V.unit(d), val(cn.length ?? 1.5, env, `${path}.length`) * U)), mount: true }
+      end = { p: V.add(a.p, V.mul(V.unit(d), val(cn.length ?? 1.5, env, `${path}.length`) * U)), mount: cn.end !== 'free' }
     }
     const pts = [a.p]
     over.forEach((p, k) => pts.push(...wrap(p, pts[pts.length - 1], k + 1 < over.length ? over[k + 1].c : end.p)))
@@ -278,8 +294,10 @@ function collect(scene, sc, pp, env, diag) {
       ends.forEach(([e, next], k) => {
         let s = V.unit(V.sub(next, e.p))
         if (spec.push) s = V.mul(s, -1)
-        // reach: the rope's first straight run, so the arrow stops short of a mount or pulley.
-        add({ label: labels[k], body: e.body, at: e.p, t: e.t, v: toMath(s), mag, kind: 'tension', path, reach: spec.push ? null : V.len(V.sub(next, e.p)) })
+        // reach: the rope's first straight run, so the arrow stops short of a mount, pulley or
+        // body; a straight rope to a free end leaves the arrow to scale.
+        const loose = cn.end === 'free' && pts.length === 2
+        add({ label: labels[k], body: e.body, at: e.p, t: e.t, v: toMath(s), mag, kind: 'tension', path, reach: spec.push || loose ? null : V.len(V.sub(next, e.p)) })
       })
     }
   })
@@ -299,6 +317,7 @@ function collect(scene, sc, pp, env, diag) {
     else u = ey(b)
     const p = b.type === 'bar' && type !== 'fixed' ? V.sub(a.p, V.mul(u, b.h / 2)) : a.p
     const id = s.id ?? String.fromCharCode(65 + i)
+    points.set(id, { body: b, t: a.t })
     if (!s.reactions) { symbols.push({ type, p, u, path }); return }
     const tangent = ex(b)
     const labels = s.labels ?? [`${id}_{x}`, `${id}_{y}`, `M_{${id}}`]
@@ -335,7 +354,7 @@ function collect(scene, sc, pp, env, diag) {
     add(rec.force)
     loads.push(rec)
   })
-  return { forces, links, symbols, moments, loads }
+  return { forces, links, symbols, moments, loads, points }
 }
 
 /** The rope's path around a pulley from `prev` to `next`: tangent in, arc, tangent out. */
@@ -379,8 +398,11 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
   const surf = sc.surf
   if (surf) {
     const down = V.mul(surf.n, -1)
+    // Labels keep off the strip under the ground line: one there reads as cut off from its arrow.
+    const below = (a, b) => { cv.fill([a, b, V.add(b, [0, BELOW]), V.add(a, [0, BELOW])], 'below', 0.9); cv.ground = [a, b] }
     if (surf.ang === 0) {
       hatched(cv, surf.A, surf.B, down, theme.muted)
+      below(surf.A, surf.B)
       if (surf.edge) {
         const corner = surf.edge === 'right' ? surf.B : surf.A
         hatched(cv, corner, V.add(corner, [0, 1.3 * U]), [surf.edge === 'right' ? -1 : 1, 0], theme.muted)
@@ -392,6 +414,7 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
       cv.trace([low, high, C], 'surface', 1, true)
       const ext = 0.3 * U * Math.sign(C[0] - low[0])
       hatched(cv, V.add(low, [-ext, 0]), V.add(C, [ext, 0]), [0, 1], theme.muted)
+      below(V.add(low, [-ext, 0]), V.add(C, [ext, 0]))
       const a1 = degOf(V.sub(C, low)), a2 = a1 + shortSweep(a1, degOf(V.sub(high, low)))
       const R = 0.75 * U
       const arc = arcPoints(low, R, a1, a2)
@@ -399,8 +422,18 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
       cv.trace(arc, 'surface')
       if (surf.label) {
         const bis = dirOf((a1 + a2) / 2)
-        const inner = dirOf((a1 + a2) / 2 + (a2 > a1 ? -8 : 8))
-        labels.first.push({ label: surf.label, size: fs, fill: theme.fg, cands: [bis, inner].flatMap((d) => [4, 12].map((g) => (w, h) => V.add(low, V.mul(d, R + g + extent(d, w, h))))) })
+        const inner = dirOf((a1 + a2) / 2 + (a2 > a1 ? -8 : 8)), base = dirOf(a1 + (a2 - a1) * 0.2)
+        // Placed after the forces, so an arrow's label near the base wins and this one moves out:
+        // outside the arc, then along the base or the slope, then inside the arc.
+        const cands = [bis, inner].flatMap((d) => [4, 12, 24].map((g) => (w, h) => V.add(low, V.mul(d, R + g + extent(d, w, h)))))
+        const slope = dirOf(a1 + (a2 - a1) * 0.8)
+        cands.push(...[base, slope].flatMap((d) => [6, 18].map((g) => (w, h) => V.add(low, V.mul(d, R + g + extent(d, w, h))))), (w, h) => {
+          // Inside the arc: on the bisector, just far enough out to clear both sides.
+          const half = Math.abs(a2 - a1) / 2, sin = Math.sin((half * Math.PI) / 180)
+          const d = Math.max(...[a1 + 90, a2 + 90].map((a) => extent(dirOf(a), w, h) + 3)) / Math.max(sin, 0.05)
+          return V.add(low, V.mul(bis, d))
+        })
+        labels.rest.push({ label: surf.label, size: fs, fill: theme.fg, cands })
       }
     }
   }
@@ -563,7 +596,7 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
     const vertex = a.f.push || (a.f.auto && V.len(V.sub(a.tip, a.f.at)) < 1) ? a.tip : a.tail
     const out = vertex === a.tip ? V.mul(a.sd, -1) : a.sd
     if (a.f.id) drawn.set(a.f.id, { vertex, d: out, L: a.L })
-    if (a.f.label) labels.forces.push({ label: a.f.label, size: fs, fill: a.color, cands: arrowCands(a.tail, a.tip), own: a.tag })
+    if (a.f.label) labels.forces.push({ label: a.f.label, size: fs, fill: a.color, cands: [...arrowCands(a.tail, a.tip), ...outsideCands(a)], own: a.tag })
     // Components along the panel's axes, dashed, with dotted lines back to the tip.
     if (a.f.components) {
       const axAng = axesAngle(scene, sc, ctx.env, pp)
@@ -614,9 +647,11 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
     const reach = Math.max(1.4 * U, ...arrows.map((a) => Math.max(V.len(V.sub(a.tip, o)), V.len(V.sub(a.tail, o))) + 16))
     const dirs = ax['3d'] ? [[1, 0], [0, -1], V.unit(project([0, 0, 1]))] : [dirOf(axesAngle(scene, sc, env, pp)), dirOf(axesAngle(scene, sc, env, pp) + 90)]
     const names = ax.labels ?? (ax['3d'] ? ['x', 'y', 'z'] : ['x', 'y'])
+    // A negative half ends at the farthest arrow along it, so labels past a component's tip stay clear.
+    const back = (d) => Math.max(0.6 * U, ...arrows.flatMap((a) => [a.tail, a.tip]).map((p) => -V.dot(V.sub(p, o), d)))
     dirs.forEach((d, k) => {
       const len = k === 2 ? reach * 0.75 : reach
-      const neg = ax['3d'] ? o : V.sub(o, V.mul(d, len)), pos = V.add(o, V.mul(d, len))
+      const neg = ax['3d'] ? o : V.sub(o, V.mul(d, back(d))), pos = V.add(o, V.mul(d, len))
       const before = cv.obs.length
       arrow(cv, neg, pos, theme.faint, { width: 1, head: 7, layer: 'back' })
       for (let j = before; j < cv.obs.length; j++) { cv.obs[j][2] = 0.4; cv.obs[j][3] = 'axis' }
@@ -653,6 +688,8 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
     }
   })
 
+  drawDims(scene, sc, col, pp, cv, labels, ctx)
+
   // Body labels: inside a block or disk when there's room, else beside it.
   for (const b of sc.bodies) {
     if (!b.label) continue
@@ -688,7 +725,90 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
     ctx.fieldMarks += n
     bbox = region
   }
-  return { cv, bbox, sums, placed }
+  return { cv, bbox, sums, placed, tips: arrows.map((a) => ({ label: a.f.label, tail: a.tail, tip: a.tip })) }
+}
+
+/**
+ * Dimension lines along bars: each from one point to another (fractions, start, end, or a force
+ * or support id), in rows below the bar (or above) past everything drawn there, with extension
+ * lines, arrowheads at both ends and the label on the line. A numeric label is checked against
+ * the bar's span.
+ */
+function drawDims(scene, sc, col, pp, cv, labels, ctx) {
+  const { theme, env, diag } = ctx
+  const list = scene.dims ?? []
+  if (!Array.isArray(list)) throw new SpecError(`${pp}dims`, 'dims is a list like [{"from": "start", "to": 0.25, "label": "2 m"}]')
+  const rows = new Map() // body id + side -> [[t0, t1, row], ...]
+  const c = theme.muted, fs = theme.size
+  list.forEach((dm, i) => {
+    const path = `${pp}dims[${i}]`
+    const b = sc.body(dm.on, `${path}.on`)
+    if (b.type !== 'bar') throw new SpecError(`${path}.on`, 'a dimension line goes along a bar; give "on" the bar\'s id')
+    const where = (ref, key) => {
+      if (ref === undefined || ref === 'start') return key === 'from' || ref === 'start' ? 0 : 1
+      if (ref === 'end') return 1
+      if (typeof ref === 'number' || /^\s*\d*\.?\d+\s*$/.test(ref)) {
+        const t = Number(ref)
+        if (!(t >= 0 && t <= 1)) throw new SpecError(`${path}.${key}`, 'a fraction along the bar runs from 0 (start) to 1 (end)')
+        return t
+      }
+      const pt = col.points.get(ref)
+      if (!pt) throw new SpecError(`${path}.${key}`, `${key} is start, end, a fraction 0 to 1, or a force or support id${col.points.size ? ` (${[...col.points.keys()].join(', ')})` : ''}`)
+      if (pt.body !== b) throw new SpecError(`${path}.${key}`, `"${ref}" acts on ${pt.body.id}, not on ${b.id}`)
+      return pt.t
+    }
+    let t0 = where(dm.from, 'from'), t1 = where(dm.to ?? 'end', 'to')
+    if (t1 < t0) [t0, t1] = [t1, t0]
+    if (t1 - t0 < 1e-9) throw new SpecError(path, 'from and to are the same point')
+    const side = dm.side ?? 'below'
+    if (!['below', 'above'].includes(side)) throw new SpecError(`${path}.side`, 'side is "below" (default) or "above"')
+    const span = b.src.span !== undefined ? val(b.src.span, env, `${b.path}.span`) : null
+    let label = dm.label
+    if (label === undefined) {
+      if (span === null) diag.warn(`${path}.label`, 'give a label (like "2 m"), or a span on the bar to compute it')
+      else label = `${r4((t1 - t0) * span)}${dm.unit ? ` ${dm.unit}` : ''}`
+    } else if (span !== null) {
+      const m = /^\s*(\d*\.?\d+)/.exec(String(label)), len = (t1 - t0) * span
+      if (m && Math.abs(Number(m[1]) - len) > 0.01 * Math.max(Math.abs(len), 1e-9)) {
+        diag.warn(`${path}.label`, `the label says ${m[1]} but the span gives ${r4(len)} (span ${r4(span)} × ${r4(t1 - t0)} of the bar)`)
+      }
+    }
+    // Rows: a dimension that overlaps one already in a row moves to the next row out.
+    const key = `${b.id}:${side}`
+    if (!rows.has(key)) rows.set(key, [])
+    const taken = rows.get(key)
+    let row = 0
+    while (taken.some(([a0, a1, r]) => r === row && t0 < a1 - 1e-9 && a0 < t1 - 1e-9)) row++
+    taken.push([t0, t1, row])
+    // Out from the bar past everything drawn on that side within the bar's length.
+    const out = side === 'below' ? V.mul(ey(b), -1) : ey(b), along = ex(b)
+    let clear = b.h / 2
+    for (const p of cv.ext) {
+      const rel = V.sub(p, b.c), u = V.dot(rel, along)
+      if (u > -b.w / 2 - 12 && u < b.w / 2 + 12) clear = Math.max(clear, V.dot(rel, out))
+    }
+    if (!b.dimBase) b.dimBase = {}
+    b.dimBase[side] ??= clear + fs + 12 // room for a label between the line and what it clears
+    const off = b.dimBase[side] + row * (fs + 20)
+    const P = (t) => loc(b, -b.w / 2 + t * b.w, 0)
+    const p0 = V.add(P(t0), V.mul(out, off)), p1 = V.add(P(t1), V.mul(out, off))
+    for (const t of [t0, t1]) {
+      const a = V.add(P(t), V.mul(out, b.h / 2 + 4)), z = V.add(P(t), V.mul(out, off + 5))
+      cv.back.push(el('line', { x1: a[0], y1: a[1], x2: z[0], y2: z[1], stroke: c, 'stroke-width': 0.8 }))
+      cv.trace([V.add(P(t), V.mul(out, off - 4)), z], 'dim', 0.6)
+      cv.ext.push(z)
+    }
+    const mid = V.mid(p0, p1)
+    if (V.len(V.sub(p1, p0)) > 22) { arrow(cv, mid, p0, c, { width: 1, head: 7, tag: 'dim' }); arrow(cv, mid, p1, c, { width: 1, head: 7, tag: 'dim' }) }
+    else { cv.front.push(el('line', { x1: p0[0], y1: p0[1], x2: p1[0], y2: p1[1], stroke: c, 'stroke-width': 1 })); cv.trace([p0, p1], 'dim') }
+    if (label !== undefined) {
+      const n = V.mul(out, -1)
+      const spots = [0.5, 0.35, 0.65].flatMap((f) => [n, out].map((s) => (w, h) => V.add(V.add(p0, V.mul(V.sub(p1, p0), f)), V.mul(s, 3 + extent(s, w, h)))))
+      labels.rest.push({ label, size: fs, fill: theme.fg, cands: spots })
+    }
+    col.dimText ??= []
+    col.dimText.push(`${b.id} ${r4(t0)}–${r4(t1)}${span !== null ? ` = ${r4((t1 - t0) * span)}` : ''}${label !== undefined ? ` "${label}"` : ''}`)
+  })
 }
 
 function axesAngle(scene, sc, env, pp) {
@@ -696,6 +816,21 @@ function axesAngle(scene, sc, env, pp) {
   if (ax.angle === 'surface') return sc.surf?.ang ?? 0
   if (ax.angle !== undefined) return val(ax.angle, env, `${pp}axes.angle`)
   return sc.surf && sc.bodies[0].s !== undefined ? sc.surf.ang : 0
+}
+
+/**
+ * Label spots for an arrow that ends inside its body (a short friction arrow along a block's
+ * bottom): just past the body's edge along the arrow, either side of its line.
+ */
+function outsideCands(a) {
+  const b = a.f.body
+  if (b.type !== 'block' && b.type !== 'disk') return []
+  const poly = grow(outline(b), b.c, 2)
+  if (!insidePoly(V.sub(a.tip, V.mul(a.sd, 1)), poly)) return []
+  let s = 0
+  while (s < 400 && insidePoly(V.add(a.tail, V.mul(a.sd, s)), poly)) s += 2
+  const n = V.perp(a.sd)
+  return [n, V.mul(n, -1)].map((side) => (w, h) => V.add(V.add(a.tail, V.mul(a.sd, s + 3 + extent(a.sd, w, h))), V.mul(side, 3 + extent(side, w, h))))
 }
 
 /** A polygon pushed out from c by d px (enough for convex body outlines). */
@@ -745,7 +880,7 @@ function forceText(f) {
 export default {
   kind: 'fbd',
   fields: ['panels', ...SCENE, 'caption', 'unit', 'mono', 'highlight'],
-  collections: ['panels', 'bodies', 'forces', 'connections', 'supports', 'loads', 'moments', 'angles'],
+  collections: ['panels', 'bodies', 'forces', 'connections', 'supports', 'loads', 'moments', 'angles', 'dims'],
   render(spec, { theme, diag, env, uid }) {
     const base = {}
     for (const k of SCENE) if (spec[k] !== undefined) base[k] = spec[k]
@@ -771,11 +906,15 @@ export default {
     const capH = drawnPanels.some((p) => p.caption) ? fs + 12 : 0
     const H = Math.max(...drawnPanels.map((p) => p.bbox[3] - p.bbox[1]))
     let x = M
-    const groups = []
+    const groups = [], layout = []
     for (const p of drawnPanels) {
       const [x0, y0, x1, y1] = p.bbox
       const w = Math.max(x1 - x0, p.caption ? measure(p.caption, fs) : 0)
       const dx = x + (w - (x1 - x0)) / 2 - x0, dy = M + (H - (y1 - y0)) / 2 - y0
+      // Where things ended up in the SVG, for tests of the layout.
+      const at = (q) => [q[0] + dx, q[1] + dy]
+      layout.push({ labels: p.placed.map((q) => ({ label: q.label, box: [...at(q.box), ...at(q.box.slice(2))], backed: q.inner >= 1 })),
+        ground: p.cv.ground?.map(at), arrows: p.tips.map((a) => ({ label: a.label, tail: at(a.tail), tip: at(a.tip) })) })
       const kids = [...p.cv.back, ...p.cv.mid, ...p.cv.front]
       groups.push(el('g', { transform: `translate(${dx.toFixed(1)},${dy.toFixed(1)})` }, kids))
       if (p.caption) groups.push(labelSvg(p.caption, x + w / 2, M + H + capH - 2, theme, { fill: theme.fg }))
@@ -800,6 +939,7 @@ export default {
       const vecs = p.col.forces.filter((f) => f.vector).map(forceText)
       if (vecs.length) parts.push(`vectors: ${vecs.join(', ')}`)
       for (const ld of p.col.loads) parts.push(`load on ${ld.b.id} from ${r4(ld.from)} to ${r4(ld.to)}, resultant at ${r4(ld.tc)} of the length`)
+      if (p.col.dimText) parts.push(`dims: ${p.col.dimText.join(', ')}`)
       const crowded = p.placed.filter((q) => q.hard).map((q) => q.label)
       if (crowded.length) diag.warn(`${p.pp}forces`, `no clear spot for ${crowded.join(', ')}; the label sits on a backing box. Spread the forces or bodies out`)
       return `${drawnPanels.length > 1 ? `[${i + 1}${p.caption ? ` ${p.caption}` : ''}] ` : ''}${parts.join('; ')}`
@@ -807,6 +947,6 @@ export default {
     if (ctx.short.length) diag.note('forces', `drawn at the minimum length, longer than to scale: ${ctx.short.join(', ')}`)
     if (ctx.cut.length) diag.note('connections', `drawn shorter than to scale to end before the rope's mount or pulley: ${ctx.cut.join(', ')}`)
     const summary = `fbd: ${drawnPanels.length} panel${drawnPanels.length > 1 ? 's' : ''}; ${lines.join(' | ')}${ctx.fieldMarks ? '; field drawn' : ''}`
-    return { body: el('g', {}, groups), width: W, height: Ht, summary, alt: 'free-body diagram' }
+    return { body: el('g', {}, groups), width: W, height: Ht, summary, alt: 'free-body diagram', layout }
   },
 }

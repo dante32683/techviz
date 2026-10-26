@@ -49,20 +49,25 @@ export function placeLabels(items, cv) {
     q.cands.forEach((cand, i) => {
       const [cx, cy] = typeof cand === 'function' ? cand(w, h) : cand
       const box = [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
-      let s = i * 0.08, hard = 0
-      for (const o of taken) if (overlaps(box, o, 5, 3)) { s += 1000; hard++ }
+      // s ranks the spots (strokes within 3 px count, later candidates cost a little more);
+      // inner sums only what lies under the label itself, which decides its backing box.
+      let s = i * 0.08, hard = 0, inner = 0
+      for (const o of taken) if (overlaps(box, o, 5, 3)) { s += 1000; hard++; if (overlaps(box, o, 0, 0)) inner += 1000 }
       for (const [px, py, wt, tag] of cv.obs) {
         if (q.ignore && q.ignore.includes(tag)) continue
-        if (px > box[0] - 3 && px < box[2] + 3 && py > box[1] - 3 && py < box[3] + 3) { s += wt; if (wt >= 1 && px > box[0] && px < box[2] && py > box[1] && py < box[3]) hard++ }
+        if (px > box[0] - 3 && px < box[2] + 3 && py > box[1] - 3 && py < box[3] + 3) {
+          s += wt
+          if (px > box[0] && px < box[2] && py > box[1] && py < box[3]) { inner += wt; if (wt >= 1) hard++ }
+        }
         else if (q.own && tag !== q.own && typeof tag === 'string' && tag.startsWith('f:') &&
           px > box[0] - 9 && px < box[2] + 9 && py > box[1] - 9 && py < box[3] + 9) s += 0.2
       }
-      if (!best || s < best.s - 1e-9) best = { s, box, hard }
+      if (!best || s < best.s - 1e-9) best = { s, box, hard, inner }
     })
     if (!best) continue
     taken.push(best.box)
     cv.ext.push([best.box[0], best.box[1]], [best.box[2], best.box[3]])
-    out.push({ ...q, box: best.box, score: best.s, hard: best.hard })
+    out.push({ ...q, box: best.box, score: best.s, hard: best.hard, inner: best.inner })
   }
   return out
 }
@@ -71,7 +76,7 @@ export function placeLabels(items, cv) {
 export function drawLabels(placed, cv, theme) {
   for (const q of placed) {
     const [x1, y1, x2, y2] = q.box
-    if (q.score >= 1) cv.front.push(el('rect', { x: x1 - 1, y: y1, width: x2 - x1 + 2, height: y2 - y1, rx: 3, fill: theme.halo, 'fill-opacity': 0.9, class: 'tv-label-bg' }))
+    if (q.inner >= 1) cv.front.push(el('rect', { x: x1 - 1, y: y1, width: x2 - x1 + 2, height: y2 - y1, rx: 3, fill: theme.halo, 'fill-opacity': 0.9, class: 'tv-label-bg' }))
     cv.front.push(labelSvg(q.label, (x1 + x2) / 2, y2 - 4.5, theme, { size: q.size, fill: q.fill }))
   }
 }

@@ -77,3 +77,91 @@ test('a rope tension arrow stops before the rope mount, with a note that it is s
     forces: [{ dir: 'down', mag: 10, label: 'mg' }] })
   assert.ok(!notes(free).some((n) => /shorter than to scale/.test(n)), 'a long rope leaves the arrow to scale')
 })
+
+// ---- Layout checks at the sizes Dante reads figures: a panel shows one 300 px wide, a widget
+// grid about 260 px. A gap in SVG units shrinks by width / W on screen.
+import fbd from './index.js'
+import { Diag } from '../../diag.js'
+import { getTheme } from '../../theme.js'
+
+const layoutOf = (spec, theme = 'dark') => {
+  const diag = new Diag()
+  const out = fbd.render(spec, { theme: getTheme(theme), diag, env: {}, uid: 't' })
+  return { ...out, diag: diag.items }
+}
+const WIDTHS = [300, 260]
+const warnings = (o) => o.diag.filter((d) => d.level !== 'note').map((d) => d.msg)
+const overlap = (a, b) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3]
+
+const incline = (angle, extra = {}) => ({ v: 1, kind: 'fbd', unit: 'N', surface: { angle, label: '\\theta' }, body: { label: 'm' }, axes: { angle: 'surface' },
+  forces: [{ dir: 'normal', mag: 39.2 * Math.cos((angle * Math.PI) / 180), label: 'N' }, { dir: 'uphill', mag: 39.2 * Math.sin((angle * Math.PI) / 180), label: 'f_{s}' },
+    { id: 'mg', dir: 'down', mag: 39.2, label: 'mg', components: ['mg\\sin\\theta', 'mg\\cos\\theta'] }],
+  angles: [{ force: 'mg', from: 'mg.y', label: '\\theta' }], ...extra })
+
+test('incline: the mg label sits above the base line, beside its arrow, not under the hatching', () => {
+  for (const angle of [15, 30, 45]) {
+    const o = layoutOf(incline(angle))
+    const [p] = o.layout, groundY = p.ground[0][1]
+    const mg = p.labels.find((q) => q.label === 'mg'), tip = p.arrows.find((a) => a.label === 'mg').tip
+    // The box has 2 px of padding round the text, so 1.5 px of box gap shows as a clear gap.
+    for (const w of WIDTHS) assert.ok((groundY - mg.box[3]) * (w / o.width) >= 1.5, `${angle}°: mg label ${(groundY - mg.box[3]).toFixed(1)} units above the base at ${w} px`)
+    assert.ok(Math.hypot((mg.box[0] + mg.box[2]) / 2 - tip[0], (mg.box[1] + mg.box[3]) / 2 - tip[1]) < 45, `${angle}°: mg label near its tip`)
+    for (const q of p.labels) assert.ok(q.box[1] < groundY, `${angle}°: ${q.label} is not under the ground line`)
+  }
+})
+
+test('steep incline (45° to 65°): every label clears the dashed components and the other labels', () => {
+  for (const angle of [45, 55, 65, -55]) {
+    const o = layoutOf(incline(angle))
+    assert.deepEqual(warnings(o), [], `${angle}°`)
+    const { labels } = o.layout[0]
+    for (const q of labels) assert.ok(!q.backed, `${angle}°: ${q.label} sits on a line`)
+    for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+      assert.ok(!overlap(labels[i].box, labels[j].box), `${angle}°: ${labels[i].label} and ${labels[j].label} overlap`)
+    }
+  }
+})
+
+test('friction along a block\'s bottom: its label clears the hatching and the block at panel and widget widths', () => {
+  const spec = { v: 1, kind: 'fbd', unit: 'N', surface: { angle: 0 }, body: { label: 'm' },
+    forces: [{ id: 'T', dir: 25, at: 'right', mag: 50, label: 'T', components: true }, { dir: 'up', mag: 76.9, label: 'N' },
+      { dir: 'down', mag: 98, label: 'mg' }, { dir: 'left', at: 'bottom', mag: 23.1, label: 'f_{k}' }], angles: [{ force: 'T', label: '25°' }] }
+  const o = layoutOf(spec)
+  const [p] = o.layout, groundY = p.ground[0][1]
+  const f = p.labels.find((q) => q.label === 'f_{k}')
+  assert.ok(!f.backed, 'f_k sits on a line (inside the block or on the hatching)')
+  for (const w of WIDTHS) {
+    const k = w / o.width
+    const above = (groundY - f.box[3]) * k, below = (f.box[1] - groundY - 7) * k
+    assert.ok(above >= 2 || below >= 4, `f_k is ${above.toFixed(1)} px above the ground, ${below.toFixed(1)} px below the hatching at ${w} px`)
+  }
+})
+
+test('dimension lines: chained and overall spans in rows, labels checked against the span', async () => {
+  const beam = { v: 1, kind: 'fbd', unit: 'kN', body: { type: 'bar', id: 'beam', length: 6, span: 8 },
+    forces: [{ id: 'P', at: 0.25, dir: 'down', push: true, mag: 20, label: '20 kN' }],
+    supports: [{ type: 'pin' }, { type: 'roller' }],
+    dims: [{ to: 'P', label: '2 m' }, { from: 'P', to: 0.5, label: '2 m' }, { from: 0.5, label: '4 m' }, { label: '8 m' }, { from: 'A', to: 'B', unit: 'm' }] }
+  const r = await renderAsync(beam)
+  assert.match(r.summary, /dims: beam 0–0.25 = 2 "2 m", beam 0.25–0.5 = 2 "2 m", beam 0.5–1 = 4 "4 m", beam 0–1 = 8 "8 m", beam 0–1 = 8 "8 m"$/)
+  assert.deepEqual(r.diagnostics.filter((d) => d.level === 'warning'), [])
+  const bad = await renderAsync({ ...beam, dims: [{ to: 'P', label: '3 m' }] })
+  assert.match(bad.diagnostics.find((d) => d.level === 'warning').msg, /label says 3 but the span gives 2/)
+  const unknown = await renderAsync({ ...beam, dims: [{ to: 'Q' }] })
+  assert.match(unknown.diagnostics[0].msg, /force or support id \(P, A, B\)/)
+  // The overall dimension sits a row further out than the chain, and labels stay clear of lines.
+  const o = layoutOf(beam)
+  for (const q of o.layout[0].labels) assert.ok(!q.backed, `${q.label} sits on a line`)
+})
+
+test('a rope can end free (a hand pull): no mount, and its tension arrow stays to scale', async () => {
+  const rope = (end) => ({ v: 1, kind: 'fbd', unit: 'N', surface: { angle: 0 }, body: {},
+    connections: [{ type: 'rope', from: 'body.right', dir: 25, length: 1, end, tension: { labels: 'T', mag: 50 } }], forces: [{ dir: 'down', mag: 50, label: 'mg' }] })
+  const free = await renderAsync(rope('free')), mount = await renderAsync(rope(undefined))
+  const lines16 = (r) => (r.svg.match(/stroke-width="1.6"/g) ?? []).length
+  assert.equal(lines16(mount) - lines16(free), 1, 'the mount draws one more hatched line')
+  assert.ok(!notes(free).some((n) => /shorter than to scale/.test(n)))
+  assert.ok(notes(mount).some((n) => /shorter than to scale/.test(n)))
+  const bad = await renderAsync({ ...rope('loose') })
+  assert.match(bad.diagnostics[0].msg, /end is "mount".*or "free"/)
+})
