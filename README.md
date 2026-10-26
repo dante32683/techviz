@@ -1,8 +1,8 @@
 # techviz
 
-Renders technical diagrams from short JSON specs: circuit schematics, memory
+Renders technical diagrams from short JSON specs: circuit schematics, breadboard wiring, memory
 and pointer diagrams, struct layouts, timing diagrams, state machines,
-plots, and free-body diagrams. You describe what the diagram shows; techviz does the layout and
+plots, free-body diagrams, and trusses. You describe what the diagram shows; techviz does the layout and
 returns an SVG, a PNG, and a one-line summary of computed facts (nets,
 pointer targets, offsets, force sums) that can be checked against what you meant.
 
@@ -28,6 +28,7 @@ Code.
 | `plot` | Functions, parametric curves, data, and slope fields |
 | `fbd` | Free-body diagrams: forces, inclines, ropes and pulleys, supports and beam loads, fields |
 | `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, with nets checked |
+| `truss` | Planar trusses solved by the method of joints: reactions, member forces, sections |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

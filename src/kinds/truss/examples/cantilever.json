@@ -1,0 +1,6 @@
+{"v":1,"kind":"truss","unit":"kN","length":"m",
+ "joints":{"A":[0,0],"B":[0,3],"C":[3,3],"D":[3,0],"E":[6,3]},
+ "members":["AB","BC","CE","AD","DE","CD","BD"],
+ "supports":[{"at":"B","type":"pin","dir":"right"},{"at":"A","type":"roller","dir":"right"}],
+ "loads":[{"at":"E","mag":10,"dir":"down"}],
+ "dims":true,"forces":true}
