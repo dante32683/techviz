@@ -1,0 +1,16 @@
+{"v": 1, "kind": "breadboard", "cols": 20,
+ "parts": [
+  {"id": "R", "t": "R", "pins": ["h4", "h10"], "label": "R", "value": "10\\,k\\Omega"},
+  {"id": "C", "t": "Cp", "pins": ["h13", "h15"], "label": "C", "value": "100\\,\\mu F"}
+ ],
+ "wires": [
+  {"from": "g10", "to": "g13"},
+  {"from": "j15", "to": "b-15"}
+ ],
+ "nodes": {"v_{C}": "f13"},
+ "posts": [
+  {"id": "OUT", "to": "j4", "label": ["OUT", "function gen"], "color": "red"},
+  {"id": "CH2", "to": "j10", "label": ["CH2", "scope"], "color": "purple"},
+  {"id": "COM", "to": "b-19", "label": ["COM", "gen and scope ground"], "color": "black"}
+ ]
+}

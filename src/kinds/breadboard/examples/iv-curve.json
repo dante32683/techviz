@@ -1,0 +1,15 @@
+{"v": 1, "kind": "breadboard",
+ "parts": [
+  {"id": "DUT", "t": "box", "pins": ["c5", "c9"], "label": "DUT"},
+  {"id": "Rs", "t": "R", "pins": ["c12", "c18"], "label": "R_{s}", "value": "16.2\\,\\Omega"}
+ ],
+ "wires": [
+  {"from": "a9", "to": "a12"},
+  {"from": "a18", "to": "t-17"}
+ ],
+ "posts": [
+  {"id": "LO", "to": "a5", "label": ["LO", "gen LO", "CH1 probe"], "color": "red"},
+  {"id": "MID", "to": "b12", "label": ["MID", "CH2 probe"], "color": "amber"},
+  {"id": "GND", "to": "t-25", "label": ["GND", "gen GND", "CH1, CH2 ground"], "color": "black"}
+ ]
+}

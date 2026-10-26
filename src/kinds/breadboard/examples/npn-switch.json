@@ -1,0 +1,19 @@
+{"v": 1, "kind": "breadboard", "cols": 24,
+ "parts": [
+  {"id": "P1", "t": "pot", "pins": ["e3", "e4", "e5"], "label": "10\\,k\\Omega"},
+  {"id": "RB", "t": "R", "pins": ["c4", "c10"], "label": "R_{B}", "value": "4.7\\,k\\Omega"},
+  {"id": "Q1", "t": "npn", "pins": ["e12", "e10", "e14"], "label": "2N3904"},
+  {"id": "RC", "t": "R", "pins": ["c14", "c19"], "label": "R_{C}", "value": "220\\,\\Omega"},
+  {"id": "D1", "t": "led", "pins": ["b21", "b19"], "color": "green"}
+ ],
+ "wires": [
+  {"from": "a3", "to": "t+2"},
+  {"from": "b5", "to": "t-5"},
+  {"from": "a12", "to": "t-11"},
+  {"from": "a21", "to": "t+21"}
+ ],
+ "posts": [
+  {"id": "V5", "to": "t+23", "label": "+5 V", "color": "red"},
+  {"id": "GND", "to": "t-23", "label": "GND", "color": "black"}
+ ]
+}

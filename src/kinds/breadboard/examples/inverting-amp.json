@@ -1,0 +1,23 @@
+{"v": 1, "kind": "breadboard",
+ "parts": [
+  {"id": "U1", "t": "ic", "col": 12, "pins": 8, "label": "741",
+   "pinNames": ["NUL", "IN−", "IN+", "V−", "NUL", "OUT", "V+", "NC"]},
+  {"id": "Rin", "t": "R", "pins": ["h7", "h13"], "label": "R_{in}", "value": "10\\,k\\Omega"},
+  {"id": "Rf", "t": "R", "pins": ["d19", "g19"], "label": "R_{f}", "value": "47\\,k\\Omega"}
+ ],
+ "wires": [
+  {"from": "a13", "to": "t+13"},
+  {"from": "j15", "to": "b+15", "color": "blue"},
+  {"from": "j14", "to": "b-14"},
+  {"from": "a14", "to": "a19"},
+  {"from": "i13", "to": "i19"},
+  {"from": "t-1", "to": "b-1"}
+ ],
+ "posts": [
+  {"id": "VCC", "to": "t+3", "label": "+15 V", "color": "red"},
+  {"id": "COM", "to": "t-9", "label": "COM", "color": "black"},
+  {"id": "VEE", "to": "b+3", "label": "−15 V", "color": "blue"},
+  {"id": "VIN", "to": "j7", "label": ["VIN", "CH1"], "color": "amber"},
+  {"id": "VOUT", "to": "c19", "label": ["VOUT", "CH2"], "color": "purple"}
+ ]
+}

@@ -1,0 +1,21 @@
+{"v": 1, "kind": "breadboard",
+ "parts": [
+  {"id": "R1", "t": "R", "pins": ["c2", "c6"], "value": "330\\,\\Omega"},
+  {"id": "D1", "t": "led", "pins": ["d6", "d8"], "color": "red"},
+  {"id": "R2", "t": "R", "pins": ["c11", "c15"], "value": "330\\,\\Omega"},
+  {"id": "D2", "t": "led", "pins": ["d15", "d17"], "color": "green"},
+  {"id": "R3", "t": "R", "pins": ["c20", "c24"], "value": "330\\,\\Omega"},
+  {"id": "D3", "t": "led", "pins": ["d24", "d26"], "color": "amber"}
+ ],
+ "wires": [
+  {"from": "a8", "to": "t-8"},
+  {"from": "a17", "to": "t-16"},
+  {"from": "a26", "to": "t-25"}
+ ],
+ "posts": [
+  {"id": "DIO0", "to": "a2", "label": "DIO 0", "color": "red"},
+  {"id": "DIO1", "to": "a11", "label": "DIO 1", "color": "green"},
+  {"id": "DIO2", "to": "a20", "label": "DIO 2", "color": "amber"},
+  {"id": "DGND", "to": "t-29", "label": "DGND", "color": "black"}
+ ]
+}

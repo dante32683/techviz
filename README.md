@@ -27,6 +27,7 @@ Code.
 | `fsm` | Moore and Mealy state machines, or any directed graph |
 | `plot` | Functions, parametric curves, data, and slope fields |
 | `fbd` | Free-body diagrams: forces, inclines, ropes and pulleys, supports and beam loads, fields |
+| `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, with nets checked |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

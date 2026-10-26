@@ -7,5 +7,6 @@ import layout from './layout/index.js'
 import wave from './wave/index.js'
 import fsm from './fsm/index.js'
 import fbd from './fbd/index.js'
+import breadboard from './breadboard/index.js'
 
-export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd].map((k) => [k.kind, k]))
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard].map((k) => [k.kind, k]))
