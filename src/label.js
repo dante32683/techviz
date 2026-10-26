@@ -95,14 +95,18 @@ function italicize(runs) {
   for (const r of runs) {
     if (r.upright || r.shift !== 0) {
       out.push({ text: r.text, shift: r.shift, italic: false })
-      prevText += r.text
+      // A subscript ends a quantity, so a letter after it is a quantity too (m_{1}g),
+      // while a superscript can end a number (10^{3} m), so its digits still count.
+      prevText += r.shift === -1 ? '_' : r.text
       continue
     }
-    const parts = r.text.split(/([A-Za-zα-ωΑ-Ω]+)/)
+    // Accents from \vec, \hat and \bar are combining marks that stay with their letter.
+    const parts = r.text.split(/([A-Za-zα-ωΑ-Ω][A-Za-zα-ωΑ-Ω\u0300-\u036f\u20d0-\u20ff]*)/)
     for (const part of parts) {
       if (!part) continue
       let italic = false
-      if (/^[A-Za-zα-ωΑ-Ω]+$/.test(part) && part.length <= 2 && !/^[Α-Ω]+$/.test(part)) {
+      const letters = part.replace(/[\u0300-\u036f\u20d0-\u20ff]/g, '')
+      if (/^[A-Za-zα-ωΑ-Ω]+$/.test(part.charAt(0)) && letters.length <= 2 && !/^[Α-Ω]+$/.test(letters)) {
         const before = prevText.replace(/[\s\u2009\u00a0]+$/, '')
         italic = !/[0-9.]$/.test(before)
       }
@@ -119,6 +123,7 @@ function italicize(runs) {
 const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
 
 const WIDTHS = [
+  [/[\u0300-\u036f\u20d0-\u20ff]/, 0],
   [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
   [/[0-9]/, 0.56], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
 ]
@@ -138,6 +143,12 @@ export function measure(label, size = 13) {
   return w * FONT_SCALE
 }
 
+// resvg can't set the \vec arrow (U+20D7) in an italic font that lacks it (Cambria Italic does),
+// so a vector letter is drawn upright in Cambria Math from its math-italic code point instead.
+const VEC_ARROW = /\u20d7/
+const mathItalic = (text) => text.replace(/[A-Za-z]/g, (c) => c === 'h' ? '\u210e'
+  : String.fromCodePoint(c <= 'Z' ? 0x1d434 + c.charCodeAt(0) - 65 : 0x1d44e + c.charCodeAt(0) - 97))
+
 /**
  * An SVG <text> for a label. `anchor`: start | middle | end. `baseline`: the y
  * given is the alphabetic baseline unless `middle` (vertically centered).
@@ -147,14 +158,15 @@ export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.s
   if (!parsed.length) return ''
   // Upright Greek and math symbols get the math font, in pieces of their own.
   const runs = parsed.flatMap((r) => r.italic ? [r] : r.text.split(MATH_GLYPHS).filter(Boolean).map((text) => ({ ...r, text, math: MATH_GLYPHS.test(text) })))
+    .map((r) => r.italic && VEC_ARROW.test(r.text) ? { ...r, text: mathItalic(r.text), italic: false, vec: true } : r)
   // With the app's Anthropic Sans, resvg sets every plain piece of a <text> in a bold serif
   // fallback once any piece holds a glyph the font lacks. Starting each piece at its own x
   // (a new text chunk) keeps the fallback to that piece, so those labels are laid out by hand.
   let xs = null
-  if (/Anthropic Sans/.test(theme.font) && parsed.some((r) => MATH_GLYPHS.test(r.text))) {
+  if (/Anthropic Sans/.test(theme.font) && runs.some((r) => r.math || r.vec)) {
     // Here the width has to be close, not generous: the table is near Anthropic Sans's own
     // advances, and the math font's italic runs about 10% narrower (checked with fontTools).
-    const widths = runs.map((r) => (measure([r], size) / FONT_SCALE) * (r.italic || r.math ? 0.9 : 1))
+    const widths = runs.map((r) => (measure([r], size) / FONT_SCALE) * (r.italic || r.math || r.vec ? 0.9 : 1))
     const total = widths.reduce((a, b) => a + b, 0)
     let cx = x - (anchor === 'middle' ? total / 2 : anchor === 'end' ? total : 0)
     xs = widths.map((w) => { const at = cx; cx += w; return at.toFixed(2) })
@@ -167,6 +179,7 @@ export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.s
     const a = { x: xs?.[k], dy: dy ? dy.toFixed(2) : undefined }
     if (r.shift) a['font-size'] = (size * 0.72).toFixed(1)
     if (r.italic) { a['font-style'] = 'italic'; a['font-family'] = theme.math }
+    else if (r.vec) a['font-family'] = `Cambria Math, ${theme.math}`
     else if (r.math) a['font-family'] = theme.math
     return el('tspan', a, esc(r.text))
   })
