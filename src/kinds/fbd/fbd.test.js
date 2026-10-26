@@ -66,3 +66,14 @@ test('mistakes come back with a path and a fix', async () => {
     assert.match(r.text, re)
   }
 })
+
+test('a rope tension arrow stops before the rope mount, with a note that it is shortened', async () => {
+  const r = await renderAsync({ v: 1, kind: 'fbd', unit: 'N', body: { type: 'bar' },
+    connections: [{ type: 'rope', from: 'body.start', dir: 'up', length: 1, tension: { labels: 'T', mag: 10 } }],
+    forces: [{ dir: 'down', mag: 10, label: 'mg' }] })
+  assert.ok(notes(r).some((n) => /drawn shorter than to scale to end before the rope's mount or pulley: T/.test(n)))
+  const free = await renderAsync({ v: 1, kind: 'fbd', unit: 'N', body: { type: 'bar' },
+    connections: [{ type: 'rope', from: 'body.start', dir: 'up', length: 3, tension: { labels: 'T', mag: 10 } }],
+    forces: [{ dir: 'down', mag: 10, label: 'mg' }] })
+  assert.ok(!notes(free).some((n) => /shorter than to scale/.test(n)), 'a long rope leaves the arrow to scale')
+})

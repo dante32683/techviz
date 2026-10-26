@@ -278,7 +278,8 @@ function collect(scene, sc, pp, env, diag) {
       ends.forEach(([e, next], k) => {
         let s = V.unit(V.sub(next, e.p))
         if (spec.push) s = V.mul(s, -1)
-        add({ label: labels[k], body: e.body, at: e.p, t: e.t, v: toMath(s), mag, kind: 'tension', path })
+        // reach: the rope's first straight run, so the arrow stops short of a mount or pulley.
+        add({ label: labels[k], body: e.body, at: e.p, t: e.t, v: toMath(s), mag, kind: 'tension', path, reach: spec.push ? null : V.len(V.sub(next, e.p)) })
       })
     }
   })
@@ -516,6 +517,8 @@ function drawPanel(scene, sc, col, pp, ctx, scale) {
     let L = f.mag !== null && group > 0 ? Math.max(MIN_LEN, (MAX_LEN * f.mag) / group) : DEFAULT_LEN
     if (f.mag !== null && group > 0 && (MAX_LEN * f.mag) / group < MIN_LEN) ctx.short.push(f.label ?? f.path)
     L *= Math.max(0.35, plen)
+    if (f.mag !== null && f.reach && f.reach - 10 < L && L > MIN_LEN) ctx.cut.push(f.label ?? f.path)
+    if (f.reach) L = Math.min(L, Math.max(MIN_LEN, f.reach - 10))
     let push = f.push, at = f.at
     // Reactions point at their support from outside the body when there's room.
     if (f.auto) push = !insidePoly(V.sub(at, V.mul(sd, Math.min(L / 2, 20))), grow(outline(f.body), f.body.c, 2))
@@ -748,7 +751,7 @@ export default {
     for (const k of SCENE) if (spec[k] !== undefined) base[k] = spec[k]
     if (spec.panels !== undefined && !Array.isArray(spec.panels)) throw new SpecError('panels', 'panels is a list of scenes, each with an optional caption')
     const panels = spec.panels ? spec.panels.map((p, i) => ({ scene: { ...base, ...p }, pp: `panels[${i}].`, caption: p.caption })) : [{ scene: base, pp: '', caption: spec.caption }]
-    const ctx = { theme, diag, env, highlight: new Set(spec.highlight ?? []), mono: !!spec.mono, short: [], fieldMarks: 0 }
+    const ctx = { theme, diag, env, highlight: new Set(spec.highlight ?? []), mono: !!spec.mono, short: [], cut: [], fieldMarks: 0 }
     const unit = spec.unit ? ` ${spec.unit}` : ''
 
     // Resolve every panel first so arrow lengths share one scale across panels.
@@ -802,6 +805,7 @@ export default {
       return `${drawnPanels.length > 1 ? `[${i + 1}${p.caption ? ` ${p.caption}` : ''}] ` : ''}${parts.join('; ')}`
     })
     if (ctx.short.length) diag.note('forces', `drawn at the minimum length, longer than to scale: ${ctx.short.join(', ')}`)
+    if (ctx.cut.length) diag.note('connections', `drawn shorter than to scale to end before the rope's mount or pulley: ${ctx.cut.join(', ')}`)
     const summary = `fbd: ${drawnPanels.length} panel${drawnPanels.length > 1 ? 's' : ''}; ${lines.join(' | ')}${ctx.fieldMarks ? '; field drawn' : ''}`
     return { body: el('g', {}, groups), width: W, height: Ht, summary, alt: 'free-body diagram' }
   },
