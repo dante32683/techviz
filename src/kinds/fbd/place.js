@@ -39,7 +39,8 @@ export function ringCands(c, r, first = [0, -1]) {
 /**
  * Place labels in order. Each item: { label, size, fill, cands, own?, ignore? }; `own` is the tag
  * of the stroke it labels (other force strokes close by count against a spot, so the label reads
- * as its own arrow's), `ignore` lists tags it may sit on (a body label inside its body).
+ * as its own arrow's), `avoid` is a Set of tags whose strokes within 20 px count against a spot (a
+ * part label kept off other parts), `ignore` lists tags it may sit on (a body label inside its body).
  */
 export function placeLabels(items, cv) {
   const taken = [], out = []
@@ -61,6 +62,7 @@ export function placeLabels(items, cv) {
         }
         else if (q.own && tag !== q.own && typeof tag === 'string' && tag.startsWith('f:') &&
           px > box[0] - 9 && px < box[2] + 9 && py > box[1] - 9 && py < box[3] + 9) s += 0.2
+        else if (q.avoid && q.avoid.has(tag) && px > box[0] - 20 && px < box[2] + 20 && py > box[1] - 20 && py < box[3] + 20) s += 1.5
       }
       if (!best || s < best.s - 1e-9) best = { s, box, hard, inner }
     })

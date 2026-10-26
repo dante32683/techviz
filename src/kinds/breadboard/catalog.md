@@ -13,6 +13,9 @@ give the nets, tinted on the board and listed in `summary`: check them against t
   no rail hole: an error names the holes beside it.
 - `cols`: board columns, default 30 (half size); 63 for full. Fewer trims the board to the
   columns used (the figure is about 20 px per column, 610 px at 30).
+- `half: "top"` draws only rows `a`-`e` and the top rails, at about 60% of the height: use it
+  when nothing goes in rows `f`-`j` or the bottom rails, and with a small `cols` for a figure
+  beside text in a narrow panel. Holes off that half are errors.
 
 ## Fields
 
@@ -39,8 +42,9 @@ give the nets, tinted on the board and listed in `summary`: check them against t
 
 `breadboard: 30 columns; 2 parts, 2 wires, 3 posts; nets: LO[5a-e]{DUT.1, LO} MID[9a-e,12a-e]{DUT.2,
 Rs, MID} GND[18a-e,t-]{Rs, GND}; open: U1.8`. Nets are named by `nodes`, then posts, then n1, n2.
-`open` lists chip pins with nothing else on their strip. Errors: a hole that doesn't exist,
-unknown type, wrong pin count. Warnings: two leads in one hole, a two-lead part shorted (both
+`open` lists chip pins with nothing else on their strip. The same nets come as a note, so a
+techviz-panel `check_panel` lists them too. Errors (all reported at once): a hole that doesn't
+exist, unknown type, wrong pin count. Warnings: two leads in one hole, a two-lead part shorted (both
 leads in one net), a lead or post alone on its strip, a wire that connects nothing, a label
 with no clear spot.
 

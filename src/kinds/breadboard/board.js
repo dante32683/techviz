@@ -11,7 +11,11 @@ export const P = 18 // hole pitch in px (0.1 in)
 const ROWS = 'abcdefghij'
 export const RAILS = ['t+', 't-', 'b-', 'b+'] // top to bottom
 
-export function boardGeometry(cols) {
+/** Rows and rails a board shows: all of them, or with `half: "top"` rows a-e and the top rails. */
+export const rowsOf = (half) => (half === 'top' ? 'abcde' : ROWS)
+export const railsOf = (half) => (half === 'top' ? ['t+', 't-'] : RAILS)
+
+export function boardGeometry(cols, half) {
   const X0 = 1.8 * P // column 1, from the board's left edge
   const y = {}
   y['t+'] = 0.9 * P
@@ -25,8 +29,9 @@ export function boardGeometry(cols) {
   y['b-'] = y.j + 2.1 * P
   y['b+'] = y['b-'] + P
   const W = X0 * 2 + (cols - 1) * P
-  const H = y['b+'] + 0.9 * P
-  return { cols, X0, y, W, H, x: (c) => X0 + (c - 1) * P }
+  // A top-half board ends just past the channel, which marks where the rest would be.
+  const H = half === 'top' ? y.e + 2.4 * P : y['b+'] + 0.9 * P
+  return { cols, half, X0, y, W, H, x: (c) => X0 + (c - 1) * P }
 }
 
 export const isRailGap = (c) => c % 6 === 0
@@ -35,20 +40,21 @@ export const isRailGap = (c) => c % 6 === 0
  * Parse a hole name: "a12" (row a, column 12) or "t-3" (top minus rail, column 3).
  * Returns { name, col, row?, rail?, strip }. Throws a SpecError naming the fix.
  */
-export function parseHole(name, cols, path) {
+export function parseHole(name, cols, path, half) {
   if (typeof name !== 'string') throw new SpecError(path, 'a hole is a string like "a12" (row a, column 12) or "t-3" (rail)')
   const s = name.trim()
   let m = /^([a-j])(\d+)$/.exec(s)
   if (m) {
     const col = +m[2]
     if (col < 1 || col > cols) throw new SpecError(path, `"${s}": the board has columns 1 to ${cols}`)
-    const half = m[1] <= 'e' ? 'a-e' : 'f-j'
-    return { name: s, col, row: m[1], strip: `${col}${half}` }
+    if (!rowsOf(half).includes(m[1])) throw new SpecError(path, `"${s}": a "half": "top" board has rows a-e only; drop "half" to use rows f-j`)
+    return { name: s, col, row: m[1], strip: `${col}${m[1] <= 'e' ? 'a-e' : 'f-j'}` }
   }
   m = /^([tb])([+-])(\d+)$/.exec(s)
   if (m) {
     const col = +m[3], rail = m[1] + m[2]
     if (col < 1 || col > cols) throw new SpecError(path, `"${s}": the board has columns 1 to ${cols}`)
+    if (!railsOf(half).includes(rail)) throw new SpecError(path, `"${s}": a "half": "top" board has the top rails t+ and t- only; drop "half" to use the bottom rails`)
     if (isRailGap(col)) throw new SpecError(path, `"${s}": rails have no hole at column ${col} (a gap between groups of five); use ${rail}${col - 1} or ${rail}${col + 1}`)
     return { name: s, col, rail, strip: rail }
   }
@@ -59,10 +65,10 @@ export function parseHole(name, cols, path) {
 export const holeXY = (g, h) => [g.x(h.col), g.y[h.rail ?? h.row]]
 
 /** Every hole on the board, for drawing. */
-export function* allHoles(cols) {
+export function* allHoles(cols, half) {
   for (let c = 1; c <= cols; c++) {
-    for (const r of ROWS) yield { col: c, row: r }
-    if (!isRailGap(c)) for (const rail of RAILS) yield { col: c, rail }
+    for (const r of rowsOf(half)) yield { col: c, row: r }
+    if (!isRailGap(c)) for (const rail of railsOf(half)) yield { col: c, rail }
   }
 }
 

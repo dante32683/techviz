@@ -10,7 +10,7 @@ import { SpecError } from '../../diag.js'
 import { labelSvg, measure } from '../../label.js'
 import { V, Canvas } from '../fbd/draw.js'
 import { placeLabels, drawLabels, ringCands } from '../fbd/place.js'
-import { P, RAILS, boardGeometry, parseHole, holeXY, allHoles, Nets, stripOrder } from './board.js'
+import { P, RAILS, boardGeometry, parseHole, holeXY, allHoles, Nets, stripOrder, rowsOf, railsOf } from './board.js'
 import { TWO_LEAD, MULTI_PINS, twoLeadBody, multiLeadBody } from './parts.js'
 
 const TYPES = [...Object.keys(TWO_LEAD), ...Object.keys(MULTI_PINS), 'box', 'ic']
@@ -43,15 +43,21 @@ function pinLabels(p, n) {
   return names.map((s, i) => `${p.id}.${s && names.indexOf(s) === names.lastIndexOf(s) ? s : i + 1}`)
 }
 
-/** Resolve parts, wires, and posts to holes; record which hole holds what. */
-function resolve(spec, cols, diag) {
+/**
+ * Resolve parts, wires, and posts to holes; record which hole holds what. Every bad hole or
+ * part is reported (as an error) and skipped, so one render lists all of them at once.
+ */
+function resolve(spec, cols, half, diag) {
+  const bad = (e) => { if (!(e instanceof SpecError)) throw e; diag.error(e.path, e.message); return null }
+  const hole = (h, path) => { try { return parseHole(h, cols, path, half) } catch (e) { return bad(e) } }
   const used = new Map() // hole name -> owner text
   const take = (h, owner, path) => {
     if (used.has(h.name)) diag.warn(path, `${h.name} already holds ${used.get(h.name)}; a hole takes one lead`)
     else used.set(h.name, owner)
   }
   if (spec.parts !== undefined && !Array.isArray(spec.parts)) throw new SpecError('parts', 'parts is a list like [{"id": "R1", "t": "R", "pins": ["a5", "a9"]}]')
-  const parts = (spec.parts ?? []).map((p0, i) => {
+  const parts = (spec.parts ?? []).map((p0, i) => { try { return part(p0, i) } catch (e) { return bad(e) } }).filter(Boolean)
+  function part(p0, i) {
     const path = `parts[${i}]`
     if (!TYPES.includes(p0?.t)) throw new SpecError(`${path}.t`, `unknown part type "${p0?.t}"; use ${TYPES.join(', ')}`)
     for (const k of Object.keys(p0)) if (!PART_FIELDS.has(k)) diag.warn(`${path}.${k}`, `parts don't use "${k}"`)
@@ -61,48 +67,51 @@ function resolve(spec, cols, diag) {
       if (!Number.isInteger(n) || n < 4 || n % 2) throw new SpecError(`${path}.pins`, 'an ic\'s pins is an even count like 8 or 14')
       if (!Number.isInteger(p.col)) throw new SpecError(`${path}.col`, 'give "col": the column of pin 1 (bottom left, in row f, notch to the left)')
       if (p.col < 1 || p.col + n / 2 - 1 > cols) throw new SpecError(`${path}.col`, `pins 1 to ${n / 2} run along row f from column ${p.col}, past the board's ${cols} columns`)
-      p.holes = Array.from({ length: n }, (_, k) => parseHole(k < n / 2 ? `f${p.col + k}` : `e${p.col + n - 1 - k}`, cols, `${path}.col`))
+      p.holes = Array.from({ length: n }, (_, k) => parseHole(k < n / 2 ? `f${p.col + k}` : `e${p.col + n - 1 - k}`, cols, `${path}.col`, half))
     } else {
       const want = TWO_LEAD[p.t] ? 2 : MULTI_PINS[p.t] ? 3 : 0
       const names = TWO_LEAD[p.t] ? '' : MULTI_PINS[p.t] ? ` (${MULTI_PINS[p.t].join(', ')})` : ''
       if (!Array.isArray(p.pins) || (want && p.pins.length !== want) || !p.pins.length) {
         throw new SpecError(`${path}.pins`, `${p.t} needs "pins": ${want ? `${want} holes${names}` : 'a list of holes'}, like ["a5", "a9"]`)
       }
-      p.holes = p.pins.map((h, k) => parseHole(h, cols, `${path}.pins[${k}]`))
+      p.holes = p.pins.map((h, k) => hole(h, `${path}.pins[${k}]`))
+      if (p.holes.includes(null)) return null
     }
     p.pinIds = pinLabels(p, p.holes.length)
     p.holes.forEach((h, k) => take(h, p.pinIds[k], `${path}.pins`))
     return p
-  })
+  }
   let wc = 0
   const wires = (spec.wires ?? []).map((w0, i) => {
     const path = `wires[${i}]`
     const w = { ...w0, id: w0.id ?? `W${i + 1}`, path }
-    w.a = parseHole(w.from, cols, `${path}.from`)
-    w.b = parseHole(w.to, cols, `${path}.to`)
-    if (w.a.name === w.b.name) throw new SpecError(path, 'a wire needs two different holes')
+    w.a = hole(w.from, `${path}.from`)
+    w.b = hole(w.to, `${path}.to`)
+    if (!w.a || !w.b) return null
+    if (w.a.name === w.b.name) return bad(new SpecError(path, 'a wire needs two different holes'))
     const rails = [w.a.rail, w.b.rail].filter(Boolean)
     w.ink = w.color ? null : rails.some((r) => r.endsWith('+')) ? 'red' : rails.some((r) => r.endsWith('-')) ? 'black' : WIRE_COLORS[wc++ % WIRE_COLORS.length]
     take(w.a, `wire ${w.id}`, `${path}.from`)
     take(w.b, `wire ${w.id}`, `${path}.to`)
     return w
-  })
+  }).filter(Boolean)
   const posts = (spec.posts ?? []).map((q0, i) => {
     const path = `posts[${i}]`
     const q = { ...q0, id: q0.id ?? `post${i + 1}`, path }
-    q.h = parseHole(q.to, cols, `${path}.to`)
+    q.h = hole(q.to, `${path}.to`)
+    if (!q.h) return null
     q.lines = Array.isArray(q.label) ? q.label.map(String) : [String(q.label ?? q.id)]
-    if (q.side && !['top', 'bottom'].includes(q.side)) throw new SpecError(`${path}.side`, 'side is top or bottom')
+    if (q.side && !['top', 'bottom'].includes(q.side)) return bad(new SpecError(`${path}.side`, 'side is top or bottom'))
     q.side = q.side ?? (q.h.rail ? (q.h.rail[0] === 't' ? 'top' : 'bottom') : q.h.row <= 'e' ? 'top' : 'bottom')
     q.ink = q.color ?? WIRE_COLORS[wc++ % WIRE_COLORS.length]
     take(q.h, `post ${q.id}`, `${path}.to`)
     return q
-  })
+  }).filter(Boolean)
   return { parts, wires, posts, used }
 }
 
 /** Nets from the board's strips and the jumpers: name, strips, members. */
-function findNets(spec, R, cols, diag) {
+function findNets(spec, R, cols, half, diag) {
   const uf = new Nets()
   const members = [] // { name, strip, path, lone? }
   for (const p of R.parts) p.holes.forEach((h, k) => { uf.find(h.strip); members.push({ name: p.pinIds[k], strip: h.strip, path: `${p.path}.pins`, part: p, lone: isTwo(p) }) })
@@ -119,7 +128,8 @@ function findNets(spec, R, cols, diag) {
   for (const k of uf.parent.keys()) netOf(k).strips.add(k)
 
   for (const [name, hole] of Object.entries(spec.nodes ?? {})) {
-    const h = parseHole(hole, cols, `nodes.${name}`)
+    let h
+    try { h = parseHole(hole, cols, `nodes.${name}`, half) } catch (e) { if (!(e instanceof SpecError)) throw e; diag.error(e.path, e.message); continue }
     const n = nets.get(uf.find(h.strip))
     if (!n) { diag.warn(`nodes.${name}`, `nothing connects at ${h.name}`); continue }
     if (n.name) diag.warn(`nodes.${name}`, `${n.name} and ${name} name the same net`)
@@ -162,14 +172,17 @@ function findNets(spec, R, cols, diag) {
 
 export default {
   kind: 'breadboard',
-  fields: ['cols', 'parts', 'wires', 'posts', 'nodes', 'highlight'],
+  fields: ['cols', 'half', 'parts', 'wires', 'posts', 'nodes', 'highlight'],
   collections: ['parts', 'wires', 'posts'],
   render(spec, { theme, diag, uid }) {
     const cols = spec.cols ?? 30
     if (!Number.isInteger(cols) || cols < 5 || cols > 64) throw new SpecError('cols', 'cols is the number of columns: 30 for a half-size board, 63 for a full one')
-    const g = boardGeometry(cols)
-    const R = resolve(spec, cols, diag)
-    const N = findNets(spec, R, cols, diag)
+    const half = spec.half
+    if (half !== undefined && half !== 'top') throw new SpecError('half', 'half is "top" (rows a-e and the top rails only); leave it out for the whole board')
+    const g = boardGeometry(cols, half)
+    const R = resolve(spec, cols, half, diag)
+    const N = findNets(spec, R, cols, half, diag)
+    if (diag.hasErrors) return { body: '', width: 0, height: 0 }
     const hl = new Set(spec.highlight ?? [])
     const cv = new Canvas()
     const layers = { board: [], tint: [], holes: [], wires: [], parts: [], ends: [] }
@@ -180,7 +193,7 @@ export default {
     layers.board.push(el('rect', { x: g.X0 - 0.6 * P, y: g.y.e + 0.85 * P, width: (cols - 1) * P + 1.2 * P, height: 1.3 * P, rx: 2, fill: theme.faint, 'fill-opacity': 0.16 }))
     cv.ext.push([0, 0], [g.W, g.H])
     const x1 = g.X0 - 0.5 * P, x2 = g.x(cols) + 0.5 * P
-    for (const [rail, side] of [['t+', -1], ['t-', 1], ['b-', -1], ['b+', 1]]) {
+    for (const [rail, side] of [['t+', -1], ['t-', 1], ['b-', -1], ['b+', 1]].filter(([r]) => railsOf(half).includes(r))) {
       const plus = rail.endsWith('+'), y = g.y[rail] + side * 0.5 * P
       layers.board.push(el('line', { x1, y1: y, x2, y2: y, stroke: plus ? theme.positive : theme.negative, 'stroke-width': 1.4 }))
       for (const x of [g.X0 - 1.1 * P, g.x(cols) + 1.1 * P]) {
@@ -188,13 +201,13 @@ export default {
         cv.obs.push([x, g.y[rail], 4, 'board'])
       }
     }
-    for (const r of 'abcdefghij') for (const x of [g.X0 - 1.1 * P, g.x(cols) + 1.1 * P]) {
+    for (const r of rowsOf(half)) for (const x of [g.X0 - 1.1 * P, g.x(cols) + 1.1 * P]) {
       layers.board.push(labelSvg(raw(r), x, g.y[r], theme, { size: 9.5, fill: theme.muted, middle: true }))
       cv.obs.push([x, g.y[r], 4, 'board'])
     }
     for (let c = 1; c <= cols; c++) {
       if (c !== 1 && c % 5) continue
-      for (const y of [g.y.nums, g.y.nums2]) {
+      for (const y of half === 'top' ? [g.y.nums] : [g.y.nums, g.y.nums2]) {
         layers.board.push(labelSvg(raw(c), g.x(c), y, theme, { size: 9, fill: theme.muted, middle: true }))
         cv.obs.push([g.x(c), y, 4, 'board'])
       }
@@ -215,7 +228,7 @@ export default {
 
     // Holes: one path of small squares; used holes weigh more for label placement.
     let d = ''
-    for (const h of allHoles(cols)) {
+    for (const h of allHoles(cols, half)) {
       const [x, y] = xy(h)
       d += `M${+(x - 2.5).toFixed(2)} ${+(y - 2.5).toFixed(2)}h5v5h-5z`
       const name = h.rail ? `${h.rail}${h.col}` : `${h.row}${h.col}`
@@ -224,6 +237,8 @@ export default {
     layers.holes.push(el('path', { d, fill: theme.faint, 'fill-opacity': 0.9 }))
 
     const labels = []
+    // A part's label keeps away from other parts' leads and bodies, so it reads as its own.
+    const others = (p) => new Set(R.parts.filter((o) => o !== p).map((o) => o.id))
     const lead = (pts, ink, tag, width = 1.8) => {
       layers.parts.push(el('path', { d: pathD(pts), fill: 'none', stroke: theme.halo, 'stroke-width': width + 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }))
       layers.parts.push(el('path', { d: pathD(pts), fill: 'none', stroke: ink, 'stroke-width': width, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }))
@@ -237,7 +252,7 @@ export default {
     }
     const partLabel = (p, c, r, first) => {
       const text = [p.label, p.value].filter((s) => s !== undefined && s !== '').join(' ')
-      if (text) labels.push({ label: text, size: FS, fill: hl.has(p.id) ? theme.highlight : theme.fg, cands: [r, r + 0.8 * P, r + 1.7 * P].flatMap((rr) => ringCands(c, rr, first)), path: p.path })
+      if (text) labels.push({ label: text, size: FS, fill: hl.has(p.id) ? theme.highlight : theme.fg, cands: [r, r + 0.8 * P, r + 1.7 * P].flatMap((rr) => ringCands(c, rr, first)), path: p.path, avoid: others(p) })
     }
 
     // Parts.
@@ -277,7 +292,7 @@ export default {
         if (name) {
           const fits = measure(name, 11) < xb - xa - 14
           if (fits) layers.parts.push(labelSvg(name, (xa + xb) / 2 + 3, ym, theme, { size: 11, fill: ink, middle: true }))
-          else labels.push({ label: name, size: FS, fill: ink, cands: ringCands([(xa + xb) / 2, ym], (yb - ya) / 2 + 3, [0, 1]), path: p.path })
+          else labels.push({ label: name, size: FS, fill: ink, cands: ringCands([(xa + xb) / 2, ym], (yb - ya) / 2 + 3, [0, 1]), path: p.path, avoid: others(p) })
         }
       } else {
         // Multi-lead parts sit beside their holes, on the side away from the channel.
@@ -292,7 +307,7 @@ export default {
         const covered = (nn) => {
           const cc = V.add(cen, V.mul(nn, 0.85 * P + h / 2))
           let k = 0
-          for (const hh of allHoles(cols)) {
+          for (const hh of allHoles(cols, half)) {
             const q = xy(hh)
             if (Math.abs(V.dot(V.sub(q, cc), u)) < w / 2 + 3 && Math.abs(V.dot(V.sub(q, cc), nn)) < h / 2 + 3) k += R.used.has(hh.rail ? `${hh.rail}${hh.col}` : `${hh.row}${hh.col}`) ? 10 : 1
           }
@@ -309,7 +324,7 @@ export default {
         bodyBox(c, u, n, w, h, p.id)
         if (boxText) layers.parts.push(labelSvg(boxText, c[0], c[1], theme, { size: 11, fill: ink, middle: true }))
         const rest = boxText ? (p.value ?? '') : [p.label, p.value].filter(Boolean).join(' ')
-        if (rest) labels.push({ label: rest, size: FS, fill: ink, cands: [Math.max(w, h) / 2 + 3, Math.max(w, h) / 2 + 0.9 * P].flatMap((rr) => ringCands(c, rr, n)), path: p.path })
+        if (rest) labels.push({ label: rest, size: FS, fill: ink, cands: [Math.max(w, h) / 2 + 3, Math.max(w, h) / 2 + 0.9 * P].flatMap((rr) => ringCands(c, rr, n)), path: p.path, avoid: others(p) })
       }
       pts.forEach((q) => pinEnd(q, ink))
     }
@@ -421,7 +436,8 @@ export default {
 
     const fmt = (n) => `${n.name}[${[...n.strips].sort(stripOrder).join(',')}]{${n.members.map((m) => m.name).join(', ')}}`
     const count = (k, n) => `${n} ${k}${n === 1 ? '' : 's'}`
-    const summary = `breadboard: ${cols} columns; ${count('part', R.parts.length)}, ${count('wire', R.wires.length)}, ${count('post', R.posts.length)}; nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`
+    diag.note('', `nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`)
+    const summary = `breadboard: ${cols} columns${half === 'top' ? ' (top half)' : ''}; ${count('part', R.parts.length)}, ${count('wire', R.wires.length)}, ${count('post', R.posts.length)}; nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`
     const alt = `Breadboard with ${[...R.parts.map((p) => p.id), ...R.posts.map((q) => q.lines[0])].join(', ')}`
     void uid
     return { body, width, height, summary, alt }
