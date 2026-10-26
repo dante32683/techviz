@@ -17,6 +17,8 @@ const SYMBOLS = {
   '%': '%', '#': '#', '&': '&', '_': '_', '{': '{', '}': '}', '$': '$',
 }
 const SPACES = { ',': ' ', ';': ' ', ':': ' ', ' ': ' ', quad: '  ', '!': '' }
+// Function names set upright with a space on each side, as TeX does: mg\sin\theta is "mg sin θ".
+const OPERATORS = new Set(['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'arcsin', 'arccos', 'arctan', 'sinh', 'cosh', 'tanh', 'ln', 'log', 'exp', 'lim', 'max', 'min', 'det'])
 const LOWER_GREEK = new Set('αβγδεζηθικλμνξπρστυφχψω')
 
 function readGroup(s, i) {
@@ -61,6 +63,11 @@ export function parseLabel(src) {
           if (str[i] === '{') { [a, i] = readGroup(str, i) }
           if (str[i] === '{') { [b, i] = readGroup(str, i) }
           walk(a, shift, upright); push('/', shift, true); walk(b, shift, upright)
+        } else if (OPERATORS.has(name)) {
+          const prev = runs.length ? runs[runs.length - 1].text.slice(-1) : ''
+          if (prev && !/[\s(]/.test(prev)) push(' ', shift, true)
+          push(name, shift, true)
+          if (i < str.length && !/[\s(^_}]/.test(str[i])) push(' ', shift, true)
         } else if (name in SPACES) push(SPACES[name], shift, true)
         else if (name in SYMBOLS) push(SYMBOLS[name], shift, upright)
         else push(name, shift, upright)
@@ -108,6 +115,9 @@ function italicize(runs) {
   return out
 }
 
+// Greek (except Ω) and math operators: the app's Anthropic Sans lacks them.
+const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
+
 const WIDTHS = [
   [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
   [/[0-9]/, 0.56], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
@@ -133,21 +143,36 @@ export function measure(label, size = 13) {
  * given is the alphabetic baseline unless `middle` (vertically centered).
  */
 export function labelSvg(label, x, y, theme, { anchor = 'middle', size = theme.size, fill = theme.fg, middle = false, weight, mono = false } = {}) {
-  const runs = typeof label === 'string' ? parseLabel(label) : label
-  if (!runs.length) return ''
+  const parsed = typeof label === 'string' ? parseLabel(label) : label
+  if (!parsed.length) return ''
+  // Upright Greek and math symbols get the math font, in pieces of their own.
+  const runs = parsed.flatMap((r) => r.italic ? [r] : r.text.split(MATH_GLYPHS).filter(Boolean).map((text) => ({ ...r, text, math: MATH_GLYPHS.test(text) })))
+  // With the app's Anthropic Sans, resvg sets every plain piece of a <text> in a bold serif
+  // fallback once any piece holds a glyph the font lacks. Starting each piece at its own x
+  // (a new text chunk) keeps the fallback to that piece, so those labels are laid out by hand.
+  let xs = null
+  if (/Anthropic Sans/.test(theme.font) && parsed.some((r) => MATH_GLYPHS.test(r.text))) {
+    // Here the width has to be close, not generous: the table is near Anthropic Sans's own
+    // advances, and the math font's italic runs about 10% narrower (checked with fontTools).
+    const widths = runs.map((r) => (measure([r], size) / FONT_SCALE) * (r.italic || r.math ? 0.9 : 1))
+    const total = widths.reduce((a, b) => a + b, 0)
+    let cx = x - (anchor === 'middle' ? total / 2 : anchor === 'end' ? total : 0)
+    xs = widths.map((w) => { const at = cx; cx += w; return at.toFixed(2) })
+  }
   let dyAcc = 0
-  const spans = runs.map((r) => {
+  const spans = runs.map((r, k) => {
     const target = r.shift === -1 ? size * 0.3 : r.shift === 1 ? -size * 0.42 : 0
     const dy = target - dyAcc
     dyAcc = target
-    const a = { dy: dy ? dy.toFixed(2) : undefined }
+    const a = { x: xs?.[k], dy: dy ? dy.toFixed(2) : undefined }
     if (r.shift) a['font-size'] = (size * 0.72).toFixed(1)
     if (r.italic) { a['font-style'] = 'italic'; a['font-family'] = theme.math }
+    else if (r.math) a['font-family'] = theme.math
     return el('tspan', a, esc(r.text))
   })
   if (dyAcc) spans.push(el('tspan', { dy: (-dyAcc).toFixed(2) }, '​'))
   return el('text', {
-    x, y: middle ? y + size * 0.35 : y, 'text-anchor': anchor, 'font-size': size === theme.size ? undefined : size,
+    x, y: middle ? y + size * 0.35 : y, 'text-anchor': xs ? 'start' : anchor, 'font-size': size === theme.size ? undefined : size,
     fill, 'font-weight': weight, 'font-family': mono ? theme.mono : undefined,
   }, spans)
 }
