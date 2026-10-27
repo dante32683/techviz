@@ -84,7 +84,7 @@ adds the slider and step controls:
 
 ```html
 <script type="application/json" data-techviz>{"v":1,"kind":"plot", ...}</script>
-<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.3.1/dist/techviz.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.4.0/dist/techviz.js"></script>
 ```
 
 ## Development
