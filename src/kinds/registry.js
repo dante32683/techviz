@@ -15,5 +15,6 @@ import graph from './graph/index.js'
 import bfield from './bfield/index.js'
 import scope from './scope/index.js'
 import logic from './logic/index.js'
+import kmap from './kmap/index.js'
 
-export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield, scope, logic].map((k) => [k.kind, k]))
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield, scope, logic, kmap].map((k) => [k.kind, k]))
