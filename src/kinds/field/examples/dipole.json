@@ -1,0 +1,5 @@
+{"v":1,"kind":"field","unit":"cm",
+ "sources":[{"type":"point","at":[-2,0],"q":"2 nC"},{"type":"point","at":[2,0],"q":"-2 nC"}],
+ "points":{"P":{"at":[0,0],"E":true},"Q":[0,3]},
+ "view":{"x":[-5,5],"y":[-4,4]},
+ "E":"lines","equipotentials":{"count":6}}

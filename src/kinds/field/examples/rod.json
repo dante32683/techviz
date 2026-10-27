@@ -1,0 +1,6 @@
+{"v":1,"kind":"field","unit":"cm",
+ "sources":[{"id":"rod","type":"segment","from":[-3,0],"to":[3,0],"lambda":"5 nC/m"}],
+ "points":{"P":{"at":[0,4],"E":true}},
+ "view":{"x":[-6,6],"y":[-4,6]},
+ "E":"arrows","equipotentials":{"through":["P"]},
+ "dims":[{"from":"P","to":"rod","side":"left"}]}

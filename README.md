@@ -2,9 +2,9 @@
 
 Renders technical diagrams from short JSON specs: circuit schematics, breadboard wiring, memory
 and pointer diagrams, struct layouts, timing diagrams, state machines,
-plots, free-body diagrams, and trusses. You describe what the diagram shows; techviz does the layout and
+plots, free-body diagrams, trusses, and electric fields. You describe what the diagram shows; techviz does the layout and
 returns an SVG, a PNG, and a one-line summary of computed facts (nets,
-pointer targets, offsets, force sums) that can be checked against what you meant.
+pointer targets, offsets, force sums, potential differences) that can be checked against what you meant.
 
 I built it so Claude can draw clean diagrams while helping with engineering
 coursework. It runs as a command-line tool, a Node library, and a browser
@@ -29,6 +29,7 @@ Code.
 | `fbd` | Free-body diagrams: forces, inclines, ropes and pulleys, supports and beam loads, fields |
 | `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, with nets checked |
 | `truss` | Planar trusses solved by the method of joints: reactions, member forces, sections |
+| `field` | Electric fields and equipotentials from charges, lines, rods, planes, and plates, with E and ΔV computed |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

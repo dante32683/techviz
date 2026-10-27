@@ -1,0 +1,7 @@
+{"v":1,"kind":"field","unit":"mm",
+ "sources":[{"id":"C","type":"plates","at":[0,0],"gap":4,"dir":"down","sigma":"8.85 nC/m^2"}],
+ "points":{"A":[-2,1.5],"B":[1.5,-1.5]},
+ "view":{"x":[-4,4],"y":[-3.5,3.5]},
+ "equipotentials":{"count":4},
+ "displacements":[{"from":"A","to":"B","labels":["d_{\\parallel}","\\Delta V = 0"]}],
+ "dims":[{"from":"C","label":"4.00 mm"}]}
