@@ -31,6 +31,7 @@ Code.
 | `truss` | Planar trusses solved by the method of joints: reactions, member forces, sections |
 | `field` | Electric fields and equipotentials from charges, lines, rods, planes, and plates, with E and ΔV computed |
 | `ds` | Arrays, linked lists, stacks, queues, BST and AVL trees, heaps, and hash tables, traced op by op |
+| `graph` | Graphs with BFS, DFS, and Dijkstra traced step by step, and adjacency lists and matrices |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

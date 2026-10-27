@@ -1,0 +1,2 @@
+{"v":1,"kind":"graph","edges":["A->B","B->C","C->A","B->D","D->E","E->D"],
+ "run":"dfs","start":"A","detail":true,"layout":"layered","view":"matrix"}
