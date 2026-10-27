@@ -1,0 +1,10 @@
+{"v": 1, "kind": "logic",
+ "inputs": {"Sin": 1, "En": 1},
+ "parts": [
+  {"id": "Q2", "t": "dff", "in": ["Sin"], "en": "En"},
+  {"id": "Q1", "t": "dff", "in": ["Q2"], "en": "En"},
+  {"id": "Q0", "t": "dff", "in": ["Q1"], "en": "En"}
+ ],
+ "outputs": ["Q2", "Q1", "Q0"],
+ "vectors": [{"Sin": 1}, {"Sin": 0}, {"Sin": 1}, {"Sin": 1, "En": 0}, {"Sin": 0}]
+}

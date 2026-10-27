@@ -1,0 +1,10 @@
+{"v": 1, "kind": "logic",
+ "inputs": {"reset": 0},
+ "parts": [
+  {"id": "sum", "t": "add", "in": ["q", "1"]},
+  {"id": "q", "t": "reg", "width": 4, "in": ["sum"], "rst": "reset"}
+ ],
+ "outputs": {"Q": "q"},
+ "vectors": ["1", "0"],
+ "cycles": 5
+}

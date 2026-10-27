@@ -34,6 +34,7 @@ Code.
 | `graph` | Graphs with BFS, DFS, and Dijkstra traced step by step, and adjacency lists and matrices |
 | `bfield` | Magnetism: B from wires, loops, and solenoids, Ampère paths, charged-particle paths in B and E, induction with Lenz's law, torque, and forces between wires |
 | `scope` | Instrument screens computed from signals: oscilloscope traces with trigger, cursors, automatic measurements, math, XY, and FFT; spectrum analyzer with RBW, noise floor, and markers; eye diagrams |
+| `logic` | Gate-level schematics and RTL blocks (muxes, adders, flip-flops, registers, ALU, register file, memory) from a netlist or Boolean expressions, simulated, with truth tables, minimal SOP, and the critical path |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

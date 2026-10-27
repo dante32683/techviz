@@ -1,0 +1,11 @@
+{"v": 1, "kind": "logic",
+ "inputs": {"PCSrc": 0, "ImmExt[31:0]": 8},
+ "parts": [
+  {"id": "PCPlus4", "t": "add", "in": ["PC", "4"]},
+  {"id": "PCTarget", "t": "add", "in": ["PC", "ImmExt"]},
+  {"id": "PCNext", "t": "mux", "in": ["PCPlus4", "PCTarget"], "sel": "PCSrc"},
+  {"id": "PC", "t": "reg", "width": 32, "in": ["PCNext"]}
+ ],
+ "outputs": ["PC"],
+ "vectors": [{"PCSrc": 0}, {"PCSrc": 1}, {"PCSrc": 0}]
+}

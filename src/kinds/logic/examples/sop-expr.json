@@ -1,0 +1,7 @@
+{"v": 1, "kind": "logic",
+ "inputs": ["A", "B", "C"],
+ "expr": {"Y": "A'B'C' + AB'C' + AB'C"},
+ "simplify": true,
+ "table": true,
+ "vectors": "all"
+}
