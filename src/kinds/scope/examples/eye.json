@@ -1,0 +1,2 @@
+{"v":1,"kind":"scope","mode":"eye","bitrate":"2.5 Gb/s","prbs":7,"bits":160,"vpp":"800 mV",
+ "rise":"150 ps","jitter":"8 ps","noise":"12 mV","mask":{"w":0.5,"h":"300 mV"}}

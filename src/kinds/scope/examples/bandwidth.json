@@ -1,0 +1,6 @@
+{"v":1,"kind":"scope","timebase":{"div":"20 ns","pos":"60 ns"},"bandwidth":"200 MHz",
+ "channels":[
+  {"id":"CH1","label":"\\text{full bandwidth}","vdiv":"1 V","offset":"1 V","signal":{"type":"square","f":"5 MHz","vpp":3.3,"offset":1.65,"rise":"1 ns"}},
+  {"id":"CH2","label":"\\text{20 MHz limit}","vdiv":"1 V","offset":"-2.5 V","bwl":true,"signal":{"type":"square","f":"5 MHz","vpp":3.3,"offset":1.65,"rise":"1 ns"}}],
+ "trigger":{"source":"CH1","level":"1.65 V"},
+ "measure":["rise","fall"]}

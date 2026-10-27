@@ -33,6 +33,7 @@ Code.
 | `ds` | Arrays, linked lists, stacks, queues, BST and AVL trees, heaps, and hash tables, traced op by op |
 | `graph` | Graphs with BFS, DFS, and Dijkstra traced step by step, and adjacency lists and matrices |
 | `bfield` | Magnetism: B from wires, loops, and solenoids, Ampère paths, charged-particle paths in B and E, induction with Lenz's law, torque, and forces between wires |
+| `scope` | Instrument screens computed from signals: oscilloscope traces with trigger, cursors, automatic measurements, math, XY, and FFT; spectrum analyzer with RBW, noise floor, and markers; eye diagrams |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

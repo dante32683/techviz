@@ -13,5 +13,6 @@ import field from './field/index.js'
 import ds from './ds/index.js'
 import graph from './graph/index.js'
 import bfield from './bfield/index.js'
+import scope from './scope/index.js'
 
-export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield].map((k) => [k.kind, k]))
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield, scope].map((k) => [k.kind, k]))

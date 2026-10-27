@@ -1,0 +1,14 @@
+{"v":1,"kind":"scope","timebase":"200 us",
+ "channels":[{"id":"CH1","label":"cal","vdiv":"1 V","offset":"-1.5 V","probe":10,
+  "signal":{"type":"square","f":"1 kHz","vpp":3,"offset":1.5,"rise":"2 us"}}],
+ "trigger":{"source":"CH1","level":"1.5 V"},
+ "measure":["Vpp","Mean","freq"],
+ "steps":[
+  {"label":"10X probe on the 3 V, 1 kHz calibrator"},
+  {"label":"probe over-compensated","set":{"CH1":{"comp":"over"}}},
+  {"label":"probe under-compensated","set":{"CH1":{"comp":"under"}}},
+  {"label":"menu at 1X, probe at 10X: reads a tenth","set":{"CH1":{"comp":1,"probe":1,"tip":10,"vdiv":"100 mV","offset":"-150 mV"}},"trigger":{"level":"150 mV"}},
+  {"label":"AC coupling drops the 1.5 V mean","set":{"CH1":{"probe":10,"tip":10,"vdiv":"1 V","offset":0,"coupling":"AC"}},"trigger":{"level":0}},
+  {"label":"V/div too small: the trace clips","set":{"CH1":{"coupling":"DC","vdiv":"200 mV","offset":"-1.5 V"}},"trigger":{"level":"1.5 V"}},
+  {"label":"trigger level above the signal: free-running","set":{"CH1":{"vdiv":"1 V"}},"trigger":{"level":"4 V"}},
+  {"label":"1 kpts at 10 ms/div samples at 10 kSa/s: 10.1 kHz aliases to 100 Hz","set":{"CH1":{"label":"10.1\\,kHz","offset":0,"signal":{"type":"sine","f":"10.1 kHz","vpp":3}}},"trigger":{"level":0},"mem":"1 kpts","timebase":"10 ms","measure":["Vpp","freq"]}]}

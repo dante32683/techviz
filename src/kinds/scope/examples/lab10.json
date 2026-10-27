@@ -1,0 +1,7 @@
+{"v":1,"kind":"scope","divs":[14,8],"timebase":"200 us",
+ "params":{"eps":{"value":4,"min":1,"max":20,"step":0.5,"unit":"Vpp","label":"\\varepsilon"}},
+ "channels":[
+  {"id":"CH1","label":"\\varepsilon","vdiv":"2 V","signal":{"type":"sine","f":"1 kHz","vpp":"eps"}},
+  {"id":"CH2","label":"V_{sense}","vdiv":"200 mV","signal":{"type":"sine","f":"1 kHz","vpp":"eps*16.2/116.2"}}],
+ "measure":["Vpp","freq"],
+ "cursors":{"x":"period","y":"peaks","source":"CH1"}}

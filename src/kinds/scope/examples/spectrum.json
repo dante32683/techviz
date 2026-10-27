@@ -1,0 +1,4 @@
+{"v":1,"kind":"scope","mode":"spectrum","start":"0 Hz","stop":"500 MHz","ref":"0 dBm","rbw":"1 MHz",
+ "signals":[{"type":"harmonics","f":"100 MHz","dBm":-10,"levels":[-10,-38,-47,-58],"label":"oscillator"},
+  {"f":"163 MHz","dBm":-71,"label":"spur"}],
+ "markers":[{"peak":1},{"peak":2,"delta":1},{"f":"163 MHz"}]}
