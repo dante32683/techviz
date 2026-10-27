@@ -1,0 +1,3 @@
+{"v":1,"kind":"bfield","unit":"cm",
+ "sources":[{"type":"region","B":"0.5 T","dir":"in"}],
+ "particles":[{"type":"proton","at":[0,-6.26],"v":"3e6 m/s","dir":"right","arrows":["start",0.5]}]}

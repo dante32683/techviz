@@ -1,0 +1,4 @@
+{"v":1,"kind":"bfield","unit":"cm",
+ "sources":[{"id":"1","type":"wire","at":[-4,0],"I":"4 A","dir":"out"},{"id":"2","type":"wire","at":[4,0],"I":"6 A","dir":"in"}],
+ "points":{"P":{"at":[0,0],"B":true}},
+ "B":"lines","forces":true}

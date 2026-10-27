@@ -108,12 +108,11 @@ export function arcPoints(c, r, a1, a2, n = 24) {
 /** Signed sweep from a1 to a2 the short way round, in (-180, 180]. */
 export const shortSweep = (a1, a2) => { let d = ((a2 - a1) % 360 + 540) % 360 - 180; if (d === -180) d = 180; return d }
 
-/** ⊗ (into the page) or ⊙ (out of it). */
-export function fieldMark(cv, c, into, stroke) {
-  const r = 5.5
-  cv.back.push(el('circle', { cx: c[0], cy: c[1], r, fill: 'none', stroke, 'stroke-width': 1.1 }))
+/** ⊗ (into the page) or ⊙ (out of it); `r`, `width`, `layer`, and a tinted `fill` are optional. */
+export function fieldMark(cv, c, into, stroke, { r = 5.5, width = 1.1, layer = 'back', fill } = {}) {
+  cv[layer].push(el('circle', { cx: c[0], cy: c[1], r, fill: fill ?? 'none', 'fill-opacity': fill ? 0.2 : undefined, stroke, 'stroke-width': width }))
   if (into) {
     const k = r * 0.68
-    cv.back.push(el('path', { d: `M${c[0] - k} ${c[1] - k}L${c[0] + k} ${c[1] + k}M${c[0] + k} ${c[1] - k}L${c[0] - k} ${c[1] + k}`, stroke, 'stroke-width': 1.1 }))
-  } else cv.back.push(el('circle', { cx: c[0], cy: c[1], r: 1.7, fill: stroke }))
+    cv[layer].push(el('path', { d: `M${c[0] - k} ${c[1] - k}L${c[0] + k} ${c[1] + k}M${c[0] + k} ${c[1] - k}L${c[0] - k} ${c[1] + k}`, stroke, 'stroke-width': width }))
+  } else cv[layer].push(el('circle', { cx: c[0], cy: c[1], r: Math.max(1.7, r * 0.3), fill: stroke }))
 }

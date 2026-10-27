@@ -85,7 +85,8 @@ export function drawLabels(placed, cv, theme) {
 
 /**
  * A uniform field over `region` [x0, y0, x1, y1]: ⊗/⊙ marks, or short arrows along `sd`
- * (screen unit), skipping any spot near a stroke or a label. Returns the count drawn.
+ * (screen unit), skipping any spot near a stroke or a label, or outside `field.inside(c)` when
+ * given (a round region). Returns the count drawn.
  */
 export function drawField(cv, region, field, placed, cornerBox, theme) {
   const [x0, y0, x1, y1] = region
@@ -99,6 +100,7 @@ export function drawField(cv, region, field, placed, cornerBox, theme) {
     const c = [ox + i * S, oy + j * S]
     const half = field.sd ? 13 : 9
     const box = [c[0] - half, c[1] - half, c[0] + half, c[1] + half]
+    if (field.inside && !field.inside(c)) continue
     if (boxes.some((b) => overlaps(box, b, 3, 3))) continue
     if (cv.obs.some(([px, py]) => px > box[0] - 3 && px < box[2] + 3 && py > box[1] - 3 && py < box[3] + 3)) continue
     if (field.sd) {

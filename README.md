@@ -2,7 +2,7 @@
 
 Renders technical diagrams from short JSON specs: circuit schematics, breadboard wiring, memory
 and pointer diagrams, struct layouts, timing diagrams, state machines,
-plots, free-body diagrams, trusses, and electric fields. You describe what the diagram shows; techviz does the layout and
+plots, free-body diagrams, trusses, and electric and magnetic fields. You describe what the diagram shows; techviz does the layout and
 returns an SVG, a PNG, and a one-line summary of computed facts (nets,
 pointer targets, offsets, force sums, potential differences) that can be checked against what you meant.
 
@@ -32,6 +32,7 @@ Code.
 | `field` | Electric fields and equipotentials from charges, lines, rods, planes, and plates, with E and ΔV computed |
 | `ds` | Arrays, linked lists, stacks, queues, BST and AVL trees, heaps, and hash tables, traced op by op |
 | `graph` | Graphs with BFS, DFS, and Dijkstra traced step by step, and adjacency lists and matrices |
+| `bfield` | Magnetism: B from wires, loops, and solenoids, Ampère paths, charged-particle paths in B and E, induction with Lenz's law, torque, and forces between wires |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

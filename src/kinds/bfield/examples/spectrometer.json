@@ -1,0 +1,4 @@
+{"v":1,"kind":"bfield","unit":"cm",
+ "sources":[{"id":"selector","type":"region","box":[[-9,-3],[0,3]],"B":"0.12 T","dir":"out","E":"2.4e4 V/m","Edir":"up"},
+  {"id":"magnet","type":"region","box":[[0,-10],[7,3.5]],"B":"0.2 T","dir":"out"}],
+ "particles":[{"q":"e","m":"6.68e-27 kg","at":[-5,0],"v":"2e5 m/s","dir":"right","label":"q","arrows":["start","exit"]}]}

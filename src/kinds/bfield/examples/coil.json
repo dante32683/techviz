@@ -1,0 +1,4 @@
+{"v":1,"kind":"bfield","unit":"cm",
+ "sources":[{"type":"region","B":"0.1 T","dir":"out","dBdt":"2 T/s","circle":{"at":[0,0],"r":6}}],
+ "induction":[{"shape":"circle","at":[0,0],"r":4,"N":50,"R":"10 Ω"}],
+ "paths":[{"at":[0,0],"r":2},{"at":[0,0],"r":10}]}

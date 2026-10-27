@@ -1,0 +1,3 @@
+{"v":1,"kind":"bfield",
+ "sources":[{"type":"region","B":"0.8 T","dir":"out"}],
+ "induction":[{"shape":"rails","at":[0.15,0],"l":0.25,"v":"3 m/s","dir":"right","R":"2 Ω","back":0.35}]}
