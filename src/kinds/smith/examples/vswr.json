@@ -1,0 +1,4 @@
+{"v":1,"kind":"smith",
+ "points":[{"id":"ZL","label":"Z_{L}","Z":"40 + j30"},{"id":"R100","label":"100 Ω","Z":100},{"id":"R25","label":"25 Ω","Z":25}],
+ "circles":[{"vswr":2}],
+ "expect":{"ZL":{"gamma":0.333,"vswr":2,"rl":"9.54 dB"},"R100":{"vswr":2},"R25":{"vswr":2}}}

@@ -1,0 +1,5 @@
+{"v":1,"kind":"smith","f":"500 MHz","admittance":true,
+ "points":[{"id":"ZL","label":"Z_{L}","Z":"100 - j50"}],
+ "moves":[{"id":"C1","shunt":"C","to":"r=1"},{"id":"L1","series":"L","to":"match"}],
+ "match":true,
+ "expect":{"C1":{"value":"1.85 pF"},"L1":{"value":"19.5 nH","z":[1,0]},"match":["23.1 nH","5.2 pF"]}}

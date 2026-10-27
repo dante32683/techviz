@@ -1,0 +1,4 @@
+{"v":1,"kind":"smith","f":"1 GHz",
+ "points":[{"id":"ZL","label":"Z_{L}","Z":"30 + j40","vswr":true}],
+ "moves":[{"id":"l8","line":0.125,"vf":0.66},{"id":"l4","line":0.125,"vf":0.66}],
+ "expect":{"l8":{"Z":[150,0]},"l4":{"Z":"30 - j40"}}}

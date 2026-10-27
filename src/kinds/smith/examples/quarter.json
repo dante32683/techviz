@@ -1,0 +1,4 @@
+{"v":1,"kind":"smith","scales":["wtg"],
+ "points":[{"id":"ZL","label":"Z_{L}","Z":"30 + j40"}],
+ "moves":[{"id":"toMax","line":true,"to":"max"},{"id":"qw","quarter":true}],
+ "expect":{"toMax":{"d":0.125,"Z":150},"qw":{"z":[1,0]}}}

@@ -36,6 +36,7 @@ Code.
 | `scope` | Instrument screens computed from signals: oscilloscope traces with trigger, cursors, automatic measurements, math, XY, and FFT; spectrum analyzer with RBW, noise floor, and markers; eye diagrams |
 | `logic` | Gate-level schematics and RTL blocks (muxes, adders, flip-flops, registers, ALU, register file, memory) from a netlist or Boolean expressions, simulated, with truth tables, minimal SOP, and the critical path |
 | `kmap` | Karnaugh maps of 2 to 5 variables with prime implicants, wraparound groups, and minimal SOP or POS |
+| `smith` | Smith charts: loads as Z, Y, Γ, or RLC models with VSWR and return loss, VSWR circles, line rotations, series and shunt L and C moves, L-section matches, quarter-wave transformers, and S11 sweeps with markers and the VSWR band |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for
