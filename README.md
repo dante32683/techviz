@@ -30,6 +30,7 @@ Code.
 | `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, with nets checked |
 | `truss` | Planar trusses solved by the method of joints: reactions, member forces, sections |
 | `field` | Electric fields and equipotentials from charges, lines, rods, planes, and plates, with E and ΔV computed |
+| `ds` | Arrays, linked lists, stacks, queues, BST and AVL trees, heaps, and hash tables, traced op by op |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

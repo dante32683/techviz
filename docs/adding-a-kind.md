@@ -49,6 +49,7 @@ export default {
   fields: ['panels', 'body', 'forces', ...], // top-level spec keys it reads (others warn)
   collections: ['forces', ...],              // arrays of items with "id" that steps can set/add/remove
   async prepare(spec) {},                    // optional: load an engine once (WASM etc.), cache it
+  steps(spec) {},                            // optional: steps computed from the spec when it has none
   render(spec, ctx) {                        // synchronous; called after prepare()
     // ctx: { theme, diag, env, uid }
     return { body, width, height, defs, summary, alt }
@@ -57,7 +58,9 @@ export default {
 ```
 
 - `spec` has the current step applied (`applySteps` in `src/index.js`); `spec.highlight`
-  lists ids to emphasize. `env` holds param values for expressions: evaluate numbers through
+  lists ids to emphasize. A kind whose spec describes a process (`ds` ops) can return its own
+  steps from `steps(spec)` when the spec has no `steps`: each is an ordinary step object
+  (`{label, __state: 3}`), applied the same way, so the widget's buttons walk the process. `env` holds param values for expressions: evaluate numbers through
   `compileFor` in `src/expr.js` (fbd's `val`), never `eval` or `new Function`.
 - `body` is SVG markup without the outer `<svg>`; `defs` goes in `<defs>`. Prefix every id
   with `ctx.uid` (several diagrams share one page). Size the canvas to the content with a

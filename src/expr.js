@@ -11,6 +11,7 @@ const FUNCS = {
   step: (x) => (x >= 0 ? 1 : 0), clamp: (x, a, b) => Math.min(Math.max(x, a), b),
   sec: (x) => 1 / Math.cos(x), csc: (x) => 1 / Math.sin(x), cot: (x) => 1 / Math.tan(x),
   deg: (x) => (x * 180) / Math.PI, rad: (x) => (x * Math.PI) / 180,
+  mod: (a, b) => ((a % b) + b) % b,
 }
 const CONSTS = { pi: Math.PI, e: Math.E, inf: Infinity }
 

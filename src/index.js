@@ -74,6 +74,13 @@ function* walkItems(list) {
   }
 }
 
+// Steps a kind computes from the spec when it has none of its own (ds: one per op). A spec the
+// kind can't step through gets none here; its render reports the problem.
+function derivedSteps(kind, spec) {
+  if (!kind.steps) return []
+  try { return kind.steps(spec) ?? [] } catch { return [] }
+}
+
 /**
  * Load what a spec's kind needs before a synchronous render (a WASM engine, say).
  * Kinds with nothing to load resolve at once. Call it before the first render.
@@ -107,9 +114,9 @@ export function render(spec, opts = {}) {
   for (const key of Object.keys(spec)) {
     if (!ENVELOPE.has(key) && !(kind.fields ?? []).includes(key)) diag.warn(key, `"${spec.kind}" doesn't use "${key}"`)
   }
-  const steps = Array.isArray(spec.steps) ? spec.steps : []
+  const steps = Array.isArray(spec.steps) ? spec.steps : derivedSteps(kind, spec)
   const stepIndex = Math.min(Math.max(opts.step ?? (typeof spec.step === 'number' ? spec.step : steps.length - 1), -1), steps.length - 1)
-  const staged = steps.length ? applySteps(spec, stepIndex, kind.collections ?? []) : spec
+  const staged = steps.length ? applySteps({ ...spec, steps }, stepIndex, kind.collections ?? []) : spec
   for (const m of staged.__missing ?? []) diag.error(m, 'no item with that id')
   const { env, meta } = paramEnv(spec, diag, { ...(staged.__paramValues ?? {}), ...(opts.params ?? {}) })
   const uid = opts.uid ?? 'tv' + Math.random().toString(36).slice(2, 7)

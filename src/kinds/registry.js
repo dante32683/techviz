@@ -10,5 +10,6 @@ import fbd from './fbd/index.js'
 import breadboard from './breadboard/index.js'
 import truss from './truss/index.js'
 import field from './field/index.js'
+import ds from './ds/index.js'
 
-export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field].map((k) => [k.kind, k]))
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds].map((k) => [k.kind, k]))
