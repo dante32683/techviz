@@ -41,3 +41,20 @@ test('a space after a command name ends the name before a letter and stays befor
   assert.equal(text('100\\,\\mu F'), '100 μF')
   assert.equal(text('\\varphi = 30°'), 'φ = 30°')
 })
+
+test('a small English word in a sentence stays upright; in a formula it is a product', () => {
+  assert.deepEqual(italics('flat at y = 3'), ['y'])
+  assert.deepEqual(italics('v = v_{0} + at'), ['v', 'v', 'at'])
+  assert.deepEqual(italics('x is 3'), ['x'])
+})
+
+test('a letter against its number is a product unless it is a unit symbol', () => {
+  assert.deepEqual(italics('x = 2t'), ['x', 't'])
+  assert.deepEqual(italics('5mA'), [])
+  assert.deepEqual(italics('12 V'), [])
+})
+
+test('an operator after a slash gets no extra space', () => {
+  const text = (src) => parseLabel(src).map((r) => r.text).join('')
+  assert.equal(text('1/\\cos\\theta'), '1/cos θ')
+})

@@ -1,7 +1,8 @@
 // Labels in a small TeX-like syntax: R_{1}, V_{in}, 10\,k\Omega, \tau = RC,
 // i^{2}. Dollar signs are optional and stripped. Single-letter quantities
-// (R, V_{s}, i) and lone lowercase Greek letters are italic; a letter right
-// after a number is a unit and stays upright (12 V, 5 A).
+// (R, V_{s}, i) and lone lowercase Greek letters are italic; a letter after a
+// number and a space is a unit and stays upright (12 V, 5 A), as is a unit
+// symbol written against its number (5mA), while 2t is a product.
 
 import { el, esc } from './svg.js'
 
@@ -20,6 +21,13 @@ const SPACES = { ',': ' ', ';': ' ', ':': ' ', ' ': ' ', quad: '  ', '!': '' }
 // Function names set upright with a space on each side, as TeX does: mg\sin\theta is "mg sin θ".
 const OPERATORS = new Set(['sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'arcsin', 'arccos', 'arctan', 'sinh', 'cosh', 'tanh', 'ln', 'log', 'exp', 'lim', 'max', 'min', 'det'])
 const LOWER_GREEK = new Set('αβγδεζηθικλμνξπρστυφχψω')
+// Unit symbols that may be written against their number (5mA, 10kΩ), and the SI prefixes
+// axis ticks use alone (1k, 10M); n and p stay out, since 2n and 2p are usually products.
+const UNITS = new Set(['k', 'M', 'G', 'μ', 'V', 'A', 'W', 'F', 'H', 's', 'm', 'g', 'J', 'N', 'C', 'K', 'T', 'L', 'Hz', 'dB', 'Pa', 'eV', 'Wb',
+  'mV', 'kV', 'mA', 'μA', 'nA', 'kW', 'MW', 'mW', 'ms', 'μs', 'ns', 'ps', 'mm', 'cm', 'km', 'nm', 'μm', 'kg', 'mg', 'kJ',
+  'mJ', 'kN', 'mH', 'μH', 'nH', 'mF', 'μF', 'nF', 'pF', 'mL', 'kΩ', 'MΩ', 'mΩ'])
+// Two-letter English words that read as words, not products, in a sentence (flat at y = 3).
+const SMALL_WORDS = new Set(['at', 'of', 'in', 'is', 'on', 'to', 'by', 'or', 'if', 'as', 'an', 'be', 'it', 'no', 'so', 'up', 'we', 'do'])
 
 function readGroup(s, i) {
   // s[i] is '{': return [content, index after the closing brace].
@@ -66,7 +74,7 @@ export function parseLabel(src) {
           walk(a, shift, upright); push('/', shift, true); walk(b, shift, upright)
         } else if (OPERATORS.has(name)) {
           const prev = runs.length ? runs[runs.length - 1].text.slice(-1) : ''
-          if (prev && !/[\s(]/.test(prev)) push(' ', shift, true)
+          if (prev && !/[\s(/]/.test(prev)) push(' ', shift, true)
           push(name, shift, true)
           if (i < str.length && !/[\s(^_}]/.test(str[i])) push(' ', shift, true)
         } else if (name in SPACES) push(SPACES[name], shift, true)
@@ -89,10 +97,12 @@ export function parseLabel(src) {
 // Italic follows math style: a word of one or two letters on the baseline is a
 // quantity (R, V, RC, i, ω t), unless a number comes right before it, which makes
 // it a unit (12 V, 5 mA, 10 kΩ). Longer words (clk, row, addr) and sub- and
-// superscripts stay upright.
+// superscripts stay upright, and so does a small English word (at, of, is) in a
+// sentence: next to another word, or in a label that has a word of 3+ letters.
 function italicize(runs) {
   const out = []
   let prevText = ''
+  const sentence = runs.some((r) => r.shift === 0 && (r.text.match(/[A-Za-z]{3,}/g) ?? []).some((w) => !OPERATORS.has(w)))
   for (const r of runs) {
     if (r.upright || r.shift !== 0) {
       out.push({ text: r.text, shift: r.shift, italic: false })
@@ -103,13 +113,18 @@ function italicize(runs) {
     }
     // Accents from \vec, \hat and \bar are combining marks that stay with their letter.
     const parts = r.text.split(/([A-Za-zα-ωΑ-Ω][A-Za-zα-ωΑ-Ω\u0300-\u036f\u20d0-\u20ff]*)/)
-    for (const part of parts) {
+    for (const [k, part] of parts.entries()) {
       if (!part) continue
       let italic = false
       const letters = part.replace(/[\u0300-\u036f\u20d0-\u20ff]/g, '')
       if (/^[A-Za-zα-ωΑ-Ω]+$/.test(part.charAt(0)) && letters.length <= 2 && !/^[Α-Ω]+$/.test(letters)) {
         const before = prevText.replace(/[\s\u2009\u00a0]+$/, '')
-        italic = !/[0-9.]$/.test(before)
+        const spaced = before.length < prevText.length
+        italic = !/[0-9.]$/.test(before) || (!spaced && !UNITS.has(letters))
+        if (italic && SMALL_WORDS.has(letters)) {
+          const nextWord = /^[\s  ]+$/.test(parts[k + 1] ?? '') && /^[A-Za-z]/.test(parts[k + 2] ?? '')
+          if (sentence || nextWord || /[A-Za-z][\s  ]+$/.test(prevText)) italic = false
+        }
       }
       const last = out[out.length - 1]
       if (last && last.shift === 0 && last.italic === italic) last.text += part
@@ -125,7 +140,7 @@ const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
 
 const WIDTHS = [
   [/[\u0300-\u036f\u20d0-\u20ff]/, 0],
-  [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
+  [/[il.,:;|!'’ ·]/, 0.3], [/[½¼¾⅓⅔⅛]/, 0.92], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
   [/[0-9]/, 0.56], [/[φψωϕΦΨ]/, 0.8], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
 ]
 const charWidth = (ch) => { for (const [re, w] of WIDTHS) if (re.test(ch)) return w; return 0.54 }
