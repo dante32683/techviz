@@ -124,7 +124,7 @@ const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
 
 const WIDTHS = [
   [/[\u0300-\u036f\u20d0-\u20ff]/, 0],
-  [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
+  [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
   [/[0-9]/, 0.56], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
 ]
 const charWidth = (ch) => { for (const [re, w] of WIDTHS) if (re.test(ch)) return w; return 0.54 }
