@@ -1,0 +1,2 @@
+{"v":1,"kind":"ac","mode":"bode","parts":{"R":"1 kohm","C":"100 nF"},"circuit":"R + C","out":"C",
+ "expect":{"fc":"1.592 kHz","f1":"1.592 kHz"}}

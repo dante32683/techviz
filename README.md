@@ -37,6 +37,7 @@ Code.
 | `logic` | Gate-level schematics and RTL blocks (muxes, adders, flip-flops, registers, ALU, register file, memory) from a netlist or Boolean expressions, simulated, with truth tables, minimal SOP, and the critical path |
 | `kmap` | Karnaugh maps of 2 to 5 variables with prime implicants, wraparound groups, and minimal SOP or POS |
 | `smith` | Smith charts: loads as Z, Y, Γ, or RLC models with VSWR and return loss, VSWR circles, line rotations, series and shunt L and C moves, L-section matches, quarter-wave transformers, and S11 sweeps with markers and the VSWR band |
+| `ac` | AC steady state from R, L, and C values: phasor diagrams (head-to-tail sums, φ, v(t) and i(t) projections), impedance triangles in the Z or Y plane, Bode plots with asymptotes, corners, and −3 dB points, and resonance curves with f₀, Q, and bandwidth, with every value computed and checked |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

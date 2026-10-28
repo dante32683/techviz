@@ -1,0 +1,2 @@
+{"v":1,"kind":"ac","mode":"resonance","parts":{"R":"10 ohm","L":"10 mH","C":"1 uF"},"V":"1 V",
+ "sweep":{"R":["10 ohm","40 ohm"]}}
