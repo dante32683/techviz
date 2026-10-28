@@ -1,0 +1,4 @@
+{"v": 1, "kind": "linalg", "mode": "vectors",
+ "vectors": [{"id": "y", "v": [7, 6]}, {"id": "u", "v": [4, 2]}],
+ "project": {"of": "y", "onto": "u"},
+ "expect": {"proj": [8, 4], "perp": [-1, 2], "dot": 40}}

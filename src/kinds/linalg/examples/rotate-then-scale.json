@@ -1,0 +1,3 @@
+{"v": 1, "kind": "linalg", "mode": "transform",
+ "compose": [{"rotate": 90, "name": "R"}, {"scale": [2, 1], "name": "S"}],
+ "expect": {"matrix": [[0, -2], [1, 0]], "det": 2}}

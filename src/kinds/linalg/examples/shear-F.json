@@ -1,0 +1,2 @@
+{"v": 1, "kind": "linalg", "mode": "transform", "A": {"shear": 1}, "shape": "F",
+ "expect": {"det": 1, "inverse": [[1, -1], [0, 1]], "eigenvalues": [1, 1]}}
