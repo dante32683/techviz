@@ -58,3 +58,20 @@ test('an operator after a slash gets no extra space', () => {
   const text = (src) => parseLabel(src).map((r) => r.text).join('')
   assert.equal(text('1/\\cos\\theta'), '1/cos θ')
 })
+
+test('a capital Greek letter stands alone and upright, so the letters around it stay quantities', () => {
+  assert.deepEqual(italics('mc\\Delta T'), ['mc', 'T'])
+  assert.deepEqual(italics('\\Delta E'), ['E'])
+})
+
+test('a symbol that is not a letter keeps the space after it', () => {
+  const text = (src) => parseLabel(src).map((r) => r.text).join('')
+  assert.equal(text('R_{2} \\leftarrow R_{2}'), 'R2 ← R2')
+  assert.equal(text('100\\,\\mu F'), '100 μF')
+})
+
+test('an ordinary symbol still joins the letter after it', () => {
+  const text = (src) => parseLabel(src).map((r) => r.text).join('')
+  assert.equal(text('\\angle H'), '∠H')
+  assert.equal(text('\\partial x'), '∂x')
+})

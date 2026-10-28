@@ -26,6 +26,8 @@ const LOWER_GREEK = new Set('αβγδεζηθικλμνξπρστυφχψω')
 const UNITS = new Set(['k', 'M', 'G', 'μ', 'V', 'A', 'W', 'F', 'H', 's', 'm', 'g', 'J', 'N', 'C', 'K', 'T', 'L', 'Hz', 'dB', 'Pa', 'eV', 'Wb',
   'mV', 'kV', 'mA', 'μA', 'nA', 'kW', 'MW', 'mW', 'ms', 'μs', 'ns', 'ps', 'mm', 'cm', 'km', 'nm', 'μm', 'kg', 'mg', 'kJ',
   'mJ', 'kN', 'mH', 'μH', 'nH', 'mF', 'μF', 'nF', 'pF', 'mL', 'kΩ', 'MΩ', 'mΩ'])
+// Symbols that keep a space after them: arrows, binary operators, and relations.
+const SPACED = /[\u2190-\u21ff·×±∓=<>≈≤≥≠≡∼∝∈∉⊂⊆∪∩]/
 // Two-letter English words that read as words, not products, in a sentence (flat at y = 3).
 const SMALL_WORDS = new Set(['at', 'of', 'in', 'is', 'on', 'to', 'by', 'or', 'if', 'as', 'an', 'be', 'it', 'no', 'so', 'up', 'we', 'do'])
 
@@ -59,7 +61,9 @@ export function parseLabel(src) {
         i += m ? m[0].length : 1
         // A space after a command name that a letter follows only ends the name (\mu F is μF);
         // before anything else it stays (\varphi = 30° keeps its space).
-        if (/^[A-Za-z]+$/.test(name) && str[i] === ' ' && /[A-Za-z]/.test(str[i + 1] ?? '')) i++
+        // An arrow, operator, or relation keeps it too (\leftarrow R, \cdot x); \angle H stays ∠H.
+        if (/^[A-Za-z]+$/.test(name) && str[i] === ' ' && /[A-Za-z]/.test(str[i + 1] ?? '') &&
+          !(name in SYMBOLS && SPACED.test(SYMBOLS[name]))) i++
         if (name === 'text' || name === 'mathrm' || name === 'textrm' || name === 'operatorname') {
           if (str[i] === '{') { const [g, j] = readGroup(str, i); walk(g, shift, true); i = j }
         } else if (name === 'mathit' || name === 'mathbf' || name === 'boldsymbol' || name === 'vec' || name === 'hat' || name === 'bar' || name === 'overline') {
@@ -112,7 +116,8 @@ function italicize(runs) {
       continue
     }
     // Accents from \vec, \hat and \bar are combining marks that stay with their letter.
-    const parts = r.text.split(/([A-Za-zα-ωΑ-Ω][A-Za-zα-ωΑ-Ω\u0300-\u036f\u20d0-\u20ff]*)/)
+    // A capital Greek letter is a token of its own, upright, so \Delta E is Δ then an italic E.
+    const parts = r.text.split(/([Α-Ω]|[A-Za-zα-ω][A-Za-zα-ω\u0300-\u036f\u20d0-\u20ff]*)/)
     for (const [k, part] of parts.entries()) {
       if (!part) continue
       let italic = false
@@ -140,7 +145,7 @@ const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
 
 const WIDTHS = [
   [/[\u0300-\u036f\u20d0-\u20ff]/, 0],
-  [/[il.,:;|!'’ ·]/, 0.3], [/[½¼¾⅓⅔⅛]/, 0.92], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
+  [/[il.,:;|!'’ ·]/, 0.3], [/[½¼¾⅓⅔⅛]/, 0.92], [/[←-⇿]/, 0.86], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
   [/[0-9]/, 0.56], [/[φψωϕΦΨ]/, 0.8], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
 ]
 const charWidth = (ch) => { for (const [re, w] of WIDTHS) if (re.test(ch)) return w; return 0.54 }
