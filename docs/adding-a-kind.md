@@ -33,7 +33,8 @@ diagrams, `src/kinds/fbd/`) is the worked reference: read it alongside this page
    layout, the catalog title and length, every example rendering in all four themes and every
    step with no errors or warnings, the catalog's JSON examples rendering, the README row, and
    the kind in the bundle. Its failure messages say what's missing.
-6. **Commit.** One commit for the kind. Pushing and tagging a release (below) only when asked.
+6. **Commit.** One commit for the kind. When other kinds are being built in parallel, leave the
+   release (below) to the session coordinating the batch.
 
 Nothing else needs editing: the techviz mod asks the CLI for the kind list (`node src/cli.js
 kinds`) and the catalog text (`node src/cli.js catalog <kind>`), and techviz-panel loads
@@ -101,4 +102,5 @@ it with `git describe --tags`). To release, after `npm test` and `npm run build`
 version in the README's widget snippet, commit, `git push origin main`, then tag the commit
 (`git tag vX.Y.Z`, minor for a new kind, patch for fixes) and `git push origin vX.Y.Z`.
 Confirm `https://cdn.jsdelivr.net/gh/dante32683/techviz@vX.Y.Z/dist/techviz.js` matches the
-local bundle. Releases are Dante's call: ask before pushing or tagging.
+local bundle. Dante has given standing permission to push and release without asking; release
+in batches, once the kinds being built in parallel have landed.
