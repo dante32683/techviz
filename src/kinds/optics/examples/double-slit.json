@@ -1,0 +1,2 @@
+{"v": 1, "kind": "optics", "mode": "slits", "lambda": "600 nm", "d": "0.10 mm", "D": "1.0 m",
+ "expect": {"theta1": 0.3438, "y1": "6.00 mm", "dy": "6.00 mm"}}

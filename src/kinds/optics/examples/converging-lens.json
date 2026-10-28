@@ -1,0 +1,4 @@
+{"v":1,"kind":"optics","elements":[{"type":"lens","f":10}],"object":{"d":30,"h":2},
+ "expect":{"di":15,"m":-0.5,"image":"real, inverted"},
+ "steps":[{"label":"object outside f"},
+          {"label":"object inside f: a magnifier","object":{"d":6,"h":1.5},"expect":{"di":-15,"m":2.5,"image":"virtual, upright"}}]}

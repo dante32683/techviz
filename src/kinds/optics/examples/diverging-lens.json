@@ -1,0 +1,2 @@
+{"v":1,"kind":"optics","elements":[{"type":"lens","f":-10}],"object":{"d":20,"h":2},
+ "expect":{"di":-6.667,"m":0.3333,"image":"virtual, upright"}}

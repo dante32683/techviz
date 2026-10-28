@@ -39,6 +39,7 @@ Code.
 | `smith` | Smith charts: loads as Z, Y, Γ, or RLC models with VSWR and return loss, VSWR circles, line rotations, series and shunt L and C moves, L-section matches, quarter-wave transformers, and S11 sweeps with markers and the VSWR band |
 | `ac` | AC steady state from R, L, and C values: phasor diagrams (head-to-tail sums, φ, v(t) and i(t) projections), impedance triangles in the Z or Y plane, Bode plots with asymptotes, corners, and −3 dB points, and resonance curves with f₀, Q, and bandwidth, with every value computed and checked |
 | `chain` | RF signal chains and instrument block diagrams: amplifiers, filters, mixers with their LO, attenuators, couplers, and splitters, each node labeled in dBm, with a cascade table (Friis NF, noise floor), SNR, sensitivity, IIP3, compression warnings, the mixer's image on a frequency plan, and VNA and spectrum analyzer presets |
+| `optics` | Ray and wave optics: thin lenses and mirrors (alone or in systems) with the principal rays traced, refraction with Snell's law, partial and total internal reflection, slabs, prisms, apparent depth, and fibers, and double slits, gratings, single slits, and thin films, with images, angles, fringes, and thicknesses computed and checked |
 
 Every spec can also have `params` (named values, drawn as sliders in the
 browser) and `steps` (stages shown one at a time). The field reference for

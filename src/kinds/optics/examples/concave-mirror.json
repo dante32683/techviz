@@ -1,0 +1,2 @@
+{"v":1,"kind":"optics","elements":[{"type":"mirror","R":20}],"object":{"d":30,"h":2},
+ "expect":{"di":15,"m":-0.5,"image":"real, inverted"}}

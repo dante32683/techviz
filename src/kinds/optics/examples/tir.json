@@ -1,0 +1,1 @@
+{"v": 1, "kind": "optics", "mode": "refraction", "media": [{"n": 1.50, "label": "glass"}, {"n": 1.00, "label": "air"}], "angle": 50}
