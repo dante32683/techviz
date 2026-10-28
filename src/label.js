@@ -49,8 +49,9 @@ export function parseLabel(src) {
         const m = /^\\([A-Za-z]+|.)/.exec(str.slice(i))
         const name = m ? m[1] : ''
         i += m ? m[0].length : 1
-        // As in TeX, one space after a command name only ends the name (\mu F is μF).
-        if (/^[A-Za-z]+$/.test(name) && str[i] === ' ') i++
+        // A space after a command name that a letter follows only ends the name (\mu F is μF);
+        // before anything else it stays (\varphi = 30° keeps its space).
+        if (/^[A-Za-z]+$/.test(name) && str[i] === ' ' && /[A-Za-z]/.test(str[i + 1] ?? '')) i++
         if (name === 'text' || name === 'mathrm' || name === 'textrm' || name === 'operatorname') {
           if (str[i] === '{') { const [g, j] = readGroup(str, i); walk(g, shift, true); i = j }
         } else if (name === 'mathit' || name === 'mathbf' || name === 'boldsymbol' || name === 'vec' || name === 'hat' || name === 'bar' || name === 'overline') {
@@ -125,7 +126,7 @@ const MATH_GLYPHS = /([\u0370-\u03A8\u03AA-\u03FF\u2200-\u22FF\u2A00-\u2AFF]+)/
 const WIDTHS = [
   [/[\u0300-\u036f\u20d0-\u20ff]/, 0],
   [/[il.,:;|!'’ ]/, 0.3], [/[fjrtI(){}\[\]\/\\-]/, 0.36], [/[mwMW]/, 0.86], [/[A-Z]/, 0.66],
-  [/[0-9]/, 0.56], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
+  [/[0-9]/, 0.56], [/[φψωϕΦΨ]/, 0.8], [/[α-ωΑ-Ω]/, 0.6], [/[ ]/, 0.17],
 ]
 const charWidth = (ch) => { for (const [re, w] of WIDTHS) if (re.test(ch)) return w; return 0.54 }
 

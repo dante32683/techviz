@@ -35,3 +35,9 @@ test('an italic letter after a subscript gets a little room (m_{1}g)', () => {
   assert.match(labelSvg('m_{1}g', 0, 0, THEMES.paper), /<tspan dx="[\d.]+"[^>]*font-style="italic"[^>]*>g</)
   assert.doesNotMatch(labelSvg('V_{in}', 0, 0, THEMES.paper), /dx=/)
 })
+
+test('a space after a command name ends the name before a letter and stays before anything else', () => {
+  const text = (src) => parseLabel(src).map((r) => r.text).join('')
+  assert.equal(text('100\\,\\mu F'), '100 μF')
+  assert.equal(text('\\varphi = 30°'), 'φ = 30°')
+})

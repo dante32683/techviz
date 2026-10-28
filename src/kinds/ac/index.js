@@ -74,7 +74,7 @@ function vectorMode(spec, ctx, cv, facts) {
       legs, chain: sum === 'chain',
       total: { z: tot, label: lab(series ? 'V_{s}' : 'I', abs(tot), series ? 'V' : 'A'), color: theme.fg },
       ref: { label: series ? lab('I', abs(a.sol.I), 'A') : lab('V_{s}', a.V, 'V'), color: color(REF) },
-      arc: series ? { from: 0, to: a.phi, label: `\\varphi\\,= ${show(a.phi, '°')}` } : { from: -a.phi, to: 0, label: `\\varphi\\,= ${show(a.phi, '°')}` },
+      arc: series ? { from: 0, to: a.phi, label: `\\varphi = ${show(a.phi, '°')}` } : { from: -a.phi, to: 0, label: `\\varphi = ${show(a.phi, '°')}` },
       net: sum === 'origin' ? { label: series ? 'V_{L} − V_{C}' : 'I_{C} − I_{L}' } : null,
     }
     if (spec.wave) {
@@ -110,7 +110,7 @@ function vectorMode(spec, ctx, cv, facts) {
       legs, chain: sum === 'chain',
       total: { z: tot, label: lab(`|${plane}|`, abs(tot), unit), color: theme.fg },
       ref: null,
-      arc: { from: 0, to: ang, label: plane === 'Z' ? `\\varphi\\,= ${show(ang, '°')}` : `\\angle Y = ${show(ang, '°')}` },
+      arc: { from: 0, to: ang, label: plane === 'Z' ? `\\varphi = ${show(ang, '°')}` : `\\angle Y = ${show(ang, '°')}` },
       net: sum === 'origin' && Math.abs(tot.re) > 1e-12 ? { label: lab(plane === 'Z' ? 'X' : 'B', tot.im, unit) } : null,
       axes: { x: `\\text{Re}\\,${plane}`, y: `\\text{Im}\\,${plane}` },
       size: 190,
