@@ -1,0 +1,7 @@
+{"v":1,"kind":"chain","input":"+20 dBm","f":"433 MHz","table":false,
+ "blocks":[
+  {"type":"source","label":"DUT","note":"100 mW"},
+  {"type":"cable","label":"cable","loss":0.5},
+  {"id":"pad","type":"atten","label":"pad","loss":20,"max":"+33 dBm","note":"20 dB, 2 W"},
+  {"id":"sa","type":"display","label":"tinySA","max":"+6 dBm","note":"max +6 dBm"}],
+ "expect":{"sa":{"level":-0.5}}}

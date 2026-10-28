@@ -18,5 +18,6 @@ import logic from './logic/index.js'
 import kmap from './kmap/index.js'
 import smith from './smith/index.js'
 import ac from './ac/index.js'
+import chain from './chain/index.js'
 
-export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield, scope, logic, kmap, smith, ac].map((k) => [k.kind, k]))
+export const KINDS = Object.fromEntries([plot, circuit, memory, layout, wave, fsm, fbd, breadboard, truss, field, ds, graph, bfield, scope, logic, kmap, smith, ac, chain].map((k) => [k.kind, k]))

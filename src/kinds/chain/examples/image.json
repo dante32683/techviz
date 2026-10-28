@@ -1,0 +1,8 @@
+{"v":1,"kind":"chain","input":"-80 dBm","f":"98 MHz","plan":true,"table":false,
+ "blocks":[
+  {"type":"antenna","label":"ANT"},
+  {"id":"pre","type":"filter","label":"BPF","pass":["88 MHz","108 MHz"],"loss":1,"stop":30,"note":"preselector"},
+  {"id":"rf","type":"amp","label":"RF amp","gain":15,"nf":3},
+  {"id":"mix","type":"mixer","label":"MIX","lo":"108.7 MHz","loss":6},
+  {"id":"iff","type":"filter","label":"IF","pass":["10.6 MHz","10.8 MHz"],"loss":3,"note":"10.7 MHz"}],
+ "expect":{"mix":{"if":"10.7 MHz","image":"119.4 MHz"}}}
