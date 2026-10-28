@@ -1,0 +1,2 @@
+{"v":1,"kind":"thermo","mode":"flow","device":"refrigerator","Th":"25 °C","Tc":"5 °C","Qc":"300 J","K":4.0,
+ "expect":{"W":"75 J","Qh":"375 J","KC":13.9}}

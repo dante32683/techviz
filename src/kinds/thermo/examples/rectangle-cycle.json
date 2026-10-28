@@ -1,0 +1,6 @@
+{"v":1,"kind":"thermo","gas":"monatomic","n":0.10,
+ "cycle":{"type":"rectangle","P":["1.0 atm","3.0 atm"],"V":["1.0 L","3.0 L"]},
+ "expect":{"W_AB":0,"Q_AB":"304 J","W_BC":"608 J","Q_BC":"1520 J","dE_BC":"912 J","W_DA":"-203 J","W":"405 J","Qin":"1824 J","e":0.222},
+ "steps":[{"label":"run clockwise: an engine"},
+          {"label":"run backward: a refrigerator","cycle":{"type":"rectangle","P":["1.0 atm","3.0 atm"],"V":["1.0 L","3.0 L"],"reverse":true},
+           "expect":{"W":"-405 J","KR":3.5,"KP":4.5}}]}

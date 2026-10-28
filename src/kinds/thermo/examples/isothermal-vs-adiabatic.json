@@ -1,0 +1,4 @@
+{"v":1,"kind":"thermo","gas":"monatomic","n":1,
+ "states":[{"id":"A","P":"1.00 atm","V":"22.4 L"},{"id":"B","V":"44.8 L"},{"id":"C","V":"44.8 L"}],
+ "legs":[{"from":"A","to":"B","process":"isothermal"},{"from":"A","to":"C","process":"adiabatic"}],
+ "expect":{"W_AB":"1.57 kJ","Q_AB":"1.57 kJ","W_AC":"1.26 kJ","Q_AC":0,"T_C":172,"P_C":0.315}}

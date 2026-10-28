@@ -1,0 +1,2 @@
+{"v":1,"kind":"thermo","mode":"heating","substance":"water","m":"1.00 kg","from":"-20 °C","to":"120 °C",
+ "expect":{"Q":"3091 kJ","Q_2":"334 kJ"}}

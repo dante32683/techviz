@@ -1,0 +1,3 @@
+{"v":1,"kind":"thermo","gas":"diatomic",
+ "cycle":{"type":"otto","r":8,"V":"500 cm^3","P":"100 kPa","T":"300 K","Tmax":"1500 K"},
+ "expect":{"T_B":"689 K","Q_BC":"338 J","W":"191 J","e":0.565,"eC":0.80}}

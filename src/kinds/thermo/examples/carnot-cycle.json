@@ -1,0 +1,5 @@
+{"v":1,"kind":"thermo","gas":"monatomic","n":1,
+ "cycle":{"type":"carnot","Th":"500 K","Tc":"300 K","V":["10 L","30 L"]},"units":{"P":"kPa"},
+ "expect":{"W_AB":"4.57 kJ","V_C":"64.5 L","e":0.40,"eC":0.40},
+ "steps":[{"label":"P-V: the work is the loop's area"},
+          {"label":"T-S: a rectangle whose area is Q_net = W","mode":"ts","expect":{"dS_AB":"9.13 J/K","e":0.40}}]}
