@@ -165,3 +165,15 @@ test('a rope can end free (a hand pull): no mount, and its tension arrow stays t
   const bad = await renderAsync({ ...rope('loose') })
   assert.match(bad.diagnostics[0].msg, /end is "mount".*or "free"/)
 })
+
+test('side-by-side panels report their columns, which tile the SVG and hold each panel', async () => {
+  const pt = (dir) => ({ field: { dir: 'in' }, body: { type: 'point', label: '+q' }, forces: [{ dir, label: 'F' }] })
+  const r = await renderAsync({ v: 1, kind: 'fbd', panels: [pt('up'), pt('left'), pt('down')] })
+  assert.equal(r.parts.length, 3)
+  assert.equal(r.parts[0][0], 0)
+  assert.equal(r.parts[2][1], r.width)
+  for (let i = 1; i < 3; i++) assert.equal(r.parts[i][0], r.parts[i - 1][1], 'no gap or overlap between columns')
+  const o = layoutOf({ v: 1, kind: 'fbd', panels: [pt('up'), pt('left'), pt('down')] })
+  o.layout.forEach((p, i) => { for (const a of p.arrows) for (const x of [a.tail[0], a.tip[0]]) assert.ok(x > o.parts[i][0] && x < o.parts[i][1], `panel ${i + 1} stays in its column`) })
+  assert.equal((await renderAsync({ v: 1, kind: 'fbd', ...pt('up') })).parts, undefined, 'one panel has no parts')
+})

@@ -908,7 +908,7 @@ export default {
     const capH = drawnPanels.some((p) => p.caption) ? fs + 12 : 0
     const H = Math.max(...drawnPanels.map((p) => p.bbox[3] - p.bbox[1]))
     let x = M
-    const groups = [], layout = []
+    const groups = [], layout = [], spans = []
     for (const p of drawnPanels) {
       const [x0, y0, x1, y1] = p.bbox
       const w = Math.max(x1 - x0, p.caption ? measure(p.caption, fs) : 0)
@@ -920,9 +920,13 @@ export default {
       const kids = [...p.cv.back, ...p.cv.mid, ...p.cv.front]
       groups.push(el('g', { transform: `translate(${dx.toFixed(1)},${dy.toFixed(1)})` }, kids))
       if (p.caption) groups.push(labelSvg(p.caption, x + w / 2, M + H + capH - 2, theme, { fill: theme.fg }))
+      spans.push([x, x + w])
       x += w + GAP
     }
     const W = x - GAP + M, Ht = M + H + capH + M
+    // Each panel's column of the SVG, split halfway across the gaps, so a page can show the
+    // panels as separate pieces that wrap onto rows (techviz-panel does).
+    const parts = spans.length > 1 ? spans.map(([a, b], i) => [i ? a - GAP / 2 : 0, i < spans.length - 1 ? b + GAP / 2 : W]) : undefined
 
     // Summary and notes: each body's forces and their sums.
     const lines = drawnPanels.map((p, i) => {
@@ -949,6 +953,6 @@ export default {
     if (ctx.short.length) diag.note('forces', `drawn at the minimum length, longer than to scale: ${ctx.short.join(', ')}`)
     if (ctx.cut.length) diag.note('connections', `drawn shorter than to scale to end before the rope's mount or pulley: ${ctx.cut.join(', ')}`)
     const summary = `fbd: ${drawnPanels.length} panel${drawnPanels.length > 1 ? 's' : ''}; ${lines.join(' | ')}${ctx.fieldMarks ? '; field drawn' : ''}`
-    return { body: el('g', {}, groups), width: W, height: Ht, summary, alt: 'free-body diagram', layout }
+    return { body: el('g', {}, groups), width: W, height: Ht, summary, alt: 'free-body diagram', layout, parts }
   },
 }

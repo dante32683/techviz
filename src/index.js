@@ -101,7 +101,8 @@ export async function renderAsync(spec, opts = {}) {
 /**
  * Render a spec. Options: theme ('paper' | 'dark' | 'light' | 'host'), params (overrides),
  * step (index; default the last), uid (prefix for ids in the SVG).
- * Returns { svg?, width, height, diagnostics: [{level, path, msg}], text, controls, summary }.
+ * Returns { svg?, width, height, diagnostics: [{level, path, msg}], text, controls, summary, parts? }.
+ * parts, for a figure of side-by-side panels (fbd panels), is each panel's [x0, x1] in viewBox units.
  */
 export function render(spec, opts = {}) {
   const diag = new Diag()
@@ -135,7 +136,7 @@ export function render(spec, opts = {}) {
   const svg = doc(out.width, out.height, out.body, theme, { alt: spec.alt ?? out.alt ?? '', defs: out.defs })
     .replace(/^<svg([^>]*) width="[^"]*" height="[^"]*"/, `<svg$1 width="${Math.round(width)}" height="${Math.round(height)}"`)
   return {
-    svg, width, height, diagnostics: diag.items, text: diag.text(), summary: out.summary ?? '',
+    svg, width, height, diagnostics: diag.items, text: diag.text(), summary: out.summary ?? '', parts: out.parts,
     controls: { params: meta, steps: steps.map((s, i) => s.label ?? `step ${i + 1}`), step: stepIndex },
   }
 }
