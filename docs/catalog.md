@@ -60,3 +60,6 @@ grid plots compact and let Dante enlarge the one he's reading; don't size them u
 Captions are plain text with Unicode math (y′, x², −), since the widget has no TeX. If no
 kind fits, a hand-written SVG or HTML widget is the fallback: flat, CSS variables for colors
 (`--text-primary`, `--text-secondary`, `--border`, `--bg-accent`), transparent background, no titles.
+Draw a hand-written SVG at 1 unit per px: `viewBox="0 0 680 H"` with text 12 to 14 px, and put
+model units (mm, say) inside a `<g transform="scale(…)">`. The app caps the first SVG in a widget
+at its viewBox width in px, so a drawing authored in small units shows tiny.
