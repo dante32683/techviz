@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { renderAsync } from '../../index.js'
+import { resistorBands } from './parts.js'
 
 const example = (f) => JSON.parse(readFileSync(new URL(`examples/${f}`, import.meta.url), 'utf8'))
 const bb = (fields) => renderAsync({ v: 1, kind: 'breadboard', ...fields })
@@ -88,6 +89,42 @@ test('a value label sits by its own part, not beside the next part over', async 
   const x4 = Math.min(...ends.map(([x]) => x)), x7 = Math.min(...ends.filter(([x]) => x > x4 + 1).map(([x]) => x))
   const lx = +r.svg.match(/<text x="([\d.]+)"[^>]*><tspan>1 kΩ/)[1]
   assert.ok(Math.abs(lx - x4) < Math.abs(lx - x7), `label at ${lx}, R1 at ${x4}, R2 at ${x7}`)
+})
+
+test('a resistor value gives its color bands: 4 for two significant digits, 5 for three', () => {
+  const code = (v, want) => resistorBands(v, want)?.bands?.join('-')
+  assert.equal(code('100\\,\\Omega'), 'brown-black-brown-gold')
+  assert.equal(code('16.2\\,\\Omega'), 'brown-blue-red-gold-brown')
+  assert.equal(code('4.7\\,k\\Omega'), 'yellow-violet-red-gold')
+  assert.equal(code('1\\,M\\Omega'), 'brown-black-green-gold')
+  assert.equal(code('0.47\\,\\Omega'), 'yellow-violet-silver-gold')
+  assert.equal(code('330\\,\\Omega'), 'orange-orange-brown-gold')
+  assert.equal(code('1 kΩ'), 'brown-black-red-gold')
+  assert.equal(code('22\u2126'), 'red-red-black-gold', 'the ohm sign as well as capital omega')
+  assert.equal(code('10\\,\\mathrm{k}\\Omega'), 'brown-black-orange-gold')
+  assert.equal(code('100\\,\\Omega', 5), 'brown-black-black-black-brown')
+  assert.equal(code('16.2\\,\\Omega', 4), 'brown-blue-red-gold-brown', 'three digits need 5 bands whatever is asked')
+  for (const v of ['R_{s}', '?', '10\\,\\mu F', '', undefined, '0\\,\\Omega']) assert.equal(resistorBands(v), null, String(v))
+  for (const v of ['1.234\\,k\\Omega', '0.01\\,\\Omega']) assert.deepEqual(resistorBands(v), { bands: null }, v)
+})
+
+test('banded resistors are listed in the summary; an unparseable value keeps the plain body', async () => {
+  const iv = await renderAsync(example('iv-curve.json'))
+  assert.match(iv.summary, /3 posts; bands: Rs brown-blue-red-gold-brown; nets:/)
+  const r = await bb({ cols: 12, parts: [{ id: 'R1', t: 'R', pins: ['a2', 'a6'], value: 'R_{x}' }, { id: 'R2', t: 'R', pins: ['c2', 'c6'] }] })
+  assert.doesNotMatch(r.summary, /bands/)
+  assert.equal(warnings(r).length, 0)
+  assert.doesNotMatch(r.svg, /#8b4a1d|#1a1a1a/, 'no band colors drawn')
+})
+
+test('a value with no color code and a band count that does not fit both warn', async () => {
+  const r = await bb({ cols: 12, parts: [{ id: 'R1', t: 'R', pins: ['a2', 'a6'], value: '1.234\\,k\\Omega' },
+    { id: 'R2', t: 'R', pins: ['c2', 'c6'], value: '16.2\\,\\Omega', bands: 4 }, { id: 'C1', t: 'C', pins: ['e2', 'e6'], bands: 5 }] })
+  const w = warnings(r).join('\n')
+  assert.match(w, /parts\[0\]\.value: "1\.234\\,k\\Omega" has no color code/)
+  assert.match(w, /parts\[1\]\.bands: "16\.2\\,\\Omega" has no 4-band code; drawn with 5 bands/)
+  assert.match(w, /parts\[2\]\.bands: only resistors/)
+  assert.match(r.summary, /bands: R2 brown-blue-red-gold-brown;/)
 })
 
 test('the nets are a note, so check_panel lists them', async () => {

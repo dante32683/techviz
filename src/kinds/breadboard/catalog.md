@@ -11,21 +11,21 @@ give the nets, tinted on the board and listed in `summary`: check them against t
 - Rails: `t+`, `t-` (top, outer first) and `b-`, `b+` (bottom, outer last) with a column, like
   `"t-3"`. Each rail is one strip along the board. Every 6th column (6, 12, 18...) is a gap with
   no rail hole: an error names the holes beside it.
-- `cols`: board columns, default 30 (half size); 63 for full. Fewer trims the board to the
-  columns used (the figure is about 20 px per column, 610 px at 30).
+- `cols`: board columns, default 30 (half size, 610 px wide, about 20 px a column); 63 is full.
 - `half: "top"` draws only rows `a`-`e` and the top rails, at about 60% of the height: use it
   when nothing goes in rows `f`-`j` or the bottom rails, and with a small `cols` for a figure
   beside text in a narrow panel. Holes off that half are errors.
 
 ## Fields
 
-- `parts`: `{id, t, pins, label, value}`. Types and `pins` order:
+- `parts`: `{id, t, pins, label, value, bands}`. Types and `pins` order:
   - two leads: `R`, `C`, `L`, `switch`; `Cp` (electrolytic: +, −); `diode`, `led` (anode,
     cathode; `led` takes `color`, default red). Lying flat between holes 2+ columns apart,
     else standing with splayed leads. Pins in the summary: `R1` (both ends), `C1+`, `D1.a`/`D1.k`.
+  - `R` shows its `value`'s color bands from pin 1: 2 digits, multiplier, gold (5%); or 3 digits,
+    multiplier, brown (1%) when the value needs them. `bands: 5` draws a 1% part's five bands.
   - three leads: `npn`, `pnp` (e, b, c: TO-92), `pot` (a, w, b) → `Q1.e`, `P1.w`.
-  - `box`: any device or module, `pins` any length; its `label` is written on it. Pins are
-    `DUT.1`, `DUT.2`... or names from `pinNames`.
+  - `box`: any device or module, `pins` any length, `label` written on it; pins `DUT.1`... or `pinNames`.
   - `ic`: a DIP across the channel: `col` (column of pin 1), `pins` (count, default 8),
     `pinNames` (written on the chip and used in the summary, e.g. `U1.OUT`; repeats use numbers).
     Pin 1 is bottom left in row f, notch left; pins run right along f, then back along e.
@@ -40,13 +40,13 @@ give the nets, tinted on the board and listed in `summary`: check them against t
 
 ## Summary and checks
 
-`breadboard: 30 columns; 2 parts, 2 wires, 3 posts; nets: LO[5a-e]{DUT.1, LO} MID[9a-e,12a-e]{DUT.2,
-Rs, MID} GND[18a-e,t-]{Rs, GND}; open: U1.8`. Nets are named by `nodes`, then posts, then n1, n2.
-`open` lists chip pins with nothing else on their strip. The same nets come as a note, so a
-techviz-panel `check_panel` lists them too. Errors (all reported at once): a hole that doesn't
-exist, unknown type, wrong pin count. Warnings: two leads in one hole, a two-lead part shorted (both
-leads in one net), a lead or post alone on its strip, a wire that connects nothing, a label
-with no clear spot.
+`breadboard: 30 columns; 2 parts, 2 wires, 3 posts; bands: Rs brown-blue-red-gold-brown; nets:
+LO[5a-e]{DUT.1, LO} MID[9a-e,12a-e]{DUT.2, Rs, MID} GND[18a-e,t-]{Rs, GND}; open: U1.8`. Nets
+are named by `nodes`, then posts, then n1, n2. `open` lists chip pins with nothing else on their
+strip. The same nets come as a note, so a techviz-panel `check_panel` lists them too. Errors (all
+reported at once): a hole that doesn't exist, unknown type, wrong pin count. Warnings: two leads
+in one hole, a two-lead part shorted (both leads in one net), a lead or post alone on its strip,
+a wire that connects nothing, a label with no clear spot, an `R` value with no color code.
 
 ## Examples
 

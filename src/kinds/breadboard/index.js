@@ -11,10 +11,10 @@ import { labelSvg, measure } from '../../label.js'
 import { V, Canvas } from '../fbd/draw.js'
 import { placeLabels, drawLabels, ringCands } from '../fbd/place.js'
 import { P, RAILS, boardGeometry, parseHole, holeXY, allHoles, Nets, stripOrder, rowsOf, railsOf } from './board.js'
-import { TWO_LEAD, MULTI_PINS, twoLeadBody, multiLeadBody } from './parts.js'
+import { TWO_LEAD, MULTI_PINS, twoLeadBody, multiLeadBody, resistorBands } from './parts.js'
 
 const TYPES = [...Object.keys(TWO_LEAD), ...Object.keys(MULTI_PINS), 'box', 'ic']
-const PART_FIELDS = new Set(['id', 't', 'pins', 'label', 'value', 'color', 'col', 'pinNames'])
+const PART_FIELDS = new Set(['id', 't', 'pins', 'label', 'value', 'color', 'col', 'pinNames', 'bands'])
 const WIRE_COLORS = ['coral', 'teal', 'purple', 'amber', 'green', 'pink']
 const NET_COLORS = ['teal', 'purple', 'amber', 'green', 'pink', 'coral']
 const raw = (s) => [{ text: String(s), shift: 0 }]
@@ -78,6 +78,14 @@ function resolve(spec, cols, half, diag) {
       if (p.holes.includes(null)) return null
     }
     p.pinIds = pinLabels(p, p.holes.length)
+    if (p.bands !== undefined && p.t !== 'R') diag.warn(`${path}.bands`, 'only resistors ("t": "R") take bands')
+    else if (p.bands !== undefined && p.bands !== 4 && p.bands !== 5) diag.warn(`${path}.bands`, 'bands is 4 (2 digits, 5%) or 5 (3 digits, 1%)')
+    if (p.t === 'R') {
+      const code = resistorBands(p.value, p.bands === 4 || p.bands === 5 ? p.bands : undefined)
+      if (code && !code.bands) diag.warn(`${path}.value`, `"${p.value}" has no color code (it takes 2 or 3 significant digits, 0.1 Ω to 999 GΩ), so the body is drawn plain`)
+      else if (code && (p.bands === 4 || p.bands === 5) && code.bands.length !== p.bands) diag.warn(`${path}.bands`, `"${p.value}" has no ${p.bands}-band code; drawn with ${code.bands.length} bands`)
+      if (code?.bands) p.colorBands = code.bands
+    }
     p.holes.forEach((h, k) => take(h, p.pinIds[k], `${path}.pins`))
     return p
   }
@@ -437,7 +445,9 @@ export default {
     const fmt = (n) => `${n.name}[${[...n.strips].sort(stripOrder).join(',')}]{${n.members.map((m) => m.name).join(', ')}}`
     const count = (k, n) => `${n} ${k}${n === 1 ? '' : 's'}`
     diag.note('', `nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`)
-    const summary = `breadboard: ${cols} columns${half === 'top' ? ' (top half)' : ''}; ${count('part', R.parts.length)}, ${count('wire', R.wires.length)}, ${count('post', R.posts.length)}; nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`
+    const banded = R.parts.filter((p) => p.colorBands)
+    const bands = banded.length ? `; bands: ${banded.map((p) => `${p.id} ${p.colorBands.join('-')}`).join(', ')}` : ''
+    const summary = `breadboard: ${cols} columns${half === 'top' ? ' (top half)' : ''}; ${count('part', R.parts.length)}, ${count('wire', R.wires.length)}, ${count('post', R.posts.length)}${bands}; nets: ${N.list.map(fmt).join(' ')}${N.open.length ? `; open: ${N.open.join(', ')}` : ''}`
     const alt = `Breadboard with ${[...R.parts.map((p) => p.id), ...R.posts.map((q) => q.lines[0])].join(', ')}`
     void uid
     return { body, width, height, summary, alt }
