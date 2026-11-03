@@ -9,7 +9,7 @@
     "techviz": "src/cli.js"
   },
   "scripts": {
-    "build": "esbuild src/browser.js --bundle --minify --format=iife --global-name=techviz --outfile=dist/techviz.js",
+    "build": "esbuild src/browser.js --bundle --minify --format=iife --global-name=techviz --outfile=dist/techviz.js && esbuild src/quiz.js --bundle --minify --format=iife --outfile=dist/quiz.js",
     "test": "node --test test/*.test.js src/kinds/*/*.test.js"
   },
   "dependencies": {

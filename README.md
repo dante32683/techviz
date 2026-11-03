@@ -96,15 +96,18 @@ adds the slider and step controls:
 
 ```html
 <script type="application/json" data-techviz>{"v":1,"kind":"plot", ...}</script>
-<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.8.1/dist/techviz.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.9.0/dist/techviz.js"></script>
 ```
 
 ## Development
 
 ```bash
 npm test        # renders every example in all three themes and checks computed facts
-npm run build   # rebuilds dist/techviz.js
+npm run build   # rebuilds dist/techviz.js and dist/quiz.js
 ```
+
+[`docs/quiz.md`](docs/quiz.md) covers the quiz widget: a closed-book answer sheet drawn
+from a `data-quiz` JSON spec, which sends the answers back to the chat.
 
 [`docs/adding-a-kind.md`](docs/adding-a-kind.md) is the checklist for adding a kind,
 with `fbd` as the worked example. `probe/` is a
