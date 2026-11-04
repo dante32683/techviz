@@ -12,19 +12,19 @@ beside the board. The strips plus the jumpers give the nets, tinted on the board
   wire, so a wire to a part's strip uses a free hole of it. Pin n of a header sits at number `at` + n − 1 (`AJ1.AO0` is row 18).
 
 ## Board
-- `preset`: `"mydaq"` is the NI myDAQ protoboard (Digilent): vertical, 60 rows, letters A-J, rails `+ −` on each side, and on its blue PCB at the
-  right three header blocks (pin ids, printed labels in parentheses): `AJ1` rows 11-22: `S1 T1 R1 +15V -15V PWRGND AOGND AO0 AO1 AI0GND AI0+ AI0-` (S1
-  T1 R1 +15V −15V GND GND 0 1 GND 0+ 0−); `DIG` rows 25-36 (printed AI1 DIGITAL): `AI1GND AI1+ AI1- DGND DIO0`...`DIO7` (GND 1+ 1− GND DIO0...); `AJ2`
-  rows 39-50: `G Y R CCW Wiper CW 5V GND Vext S2 T2 R2`; `SW5V` row 52, the +5V ON/OFF switch. The spec's own fields override the preset's; its
-  `headers` add to them (same id replaces).
+- `preset`: `"mydaq"` is the NI myDAQ protoboard (Digilent myProto): vertical, 60 rows, letters A-J, rails `+ −` on each side, and on its blue PCB at
+  the right three header blocks (pin ids, printed labels in parentheses): `AJ1` rows 11-22: `S1 T1 R1 +15V -15V PWRGND AOGND AO0 AO1 AI0GND AI0+
+  AI0-` (S1 T1 R1 +15V −15V GND GND 0 1 GND 0+ 0−); `DIG` rows 25-36 (printed AI1 DIGITAL): `AI1GND AI1+ AI1- DGND DIO0`...`DIO7` (GND 1+ 1− GND
+  DIO0...); `AJ2` rows 39-50: `G Y R CCW Wiper CW 5V GND Vext S2 T2 R2`; `SW5V` row 52, the +5V ON/OFF switch. Every GND pin is one ground (net
+  GND). G, Y, R light on-board LEDs (390 Ω to ground built in); CCW, Wiper, CW are an on-board 10 kΩ pot. Spec fields override the preset's.
 - `orient`: `"horizontal"` (default; numbers left to right) or `"vertical"` (numbers run down, rows a-j read left to right, the top rails become the
   left ones). Match the real board so it needs no turning. `caps`: true prints A-J (strips as `12A-E`).
 - `cols` (or `rows`): numbered strips, default 30 (half size, 610 px); 63 is full. A smaller count trims the board for a narrow panel (a header
   starting past the end is left off). `half: "top"` (horizontal only) draws rows a-e and the top rails, about 60% of the height.
 - `rails`: each side's signs in page order, `""` for none: default `{"top": "+-", "bottom": "-+"}`, or when vertical `{"left": "+-", "right": "-+"}`.
 - `headers`: `{id, label, pins, at, side}`: a female header beside the board, `label` its printed name. `pins`: labels (`"5V"`) or `{"id": "AO0",
-  "label": "0"}` where labels repeat. `at`: the number pin 1 lines up with (default 1); pins run along the board. `side`: bottom or top (vertical:
-  right or left; default bottom or right). No `pins` draws a pinless block (a switch).
+  "label": "0"}` where labels repeat; `"tie": "GND"` joins pins inside the board. `at`: the number pin 1 lines up with (default 1); pins run along
+  the board. `side`: bottom or top (vertical: right or left; default bottom or right). No `pins` draws a pinless block (a switch).
 
 ## Fields
 - `parts`: `{id, t, pins, label, value, bands}`. Types and `pins` order:

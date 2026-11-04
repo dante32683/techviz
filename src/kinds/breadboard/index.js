@@ -186,6 +186,14 @@ function findNets(spec, R, g, diag) {
   for (const q of R.posts) if (q.h.pin && !pins.has(q.h.name)) pins.set(q.h.name, `${q.path}.to`)
   for (const [name, path] of pins) { uf.find(name); members.push({ name, strip: name, path, pin: true, lone: true }) }
   for (const w of R.wires) uf.join(w.a.strip, w.b.strip)
+  // Pins tied inside the board (every GND on the myDAQ protoboard) are one net.
+  const ties = new Map()
+  for (const name of pins.keys()) {
+    const p = g.headers.flatMap((h) => h.pins).find((q) => q.name === name)
+    if (!p?.tie) continue
+    if (ties.has(p.tie)) uf.join(ties.get(p.tie), name)
+    else ties.set(p.tie, name)
+  }
   const nets = new Map() // root -> net
   const netOf = (strip) => {
     const r = uf.find(strip)
@@ -207,6 +215,7 @@ function findNets(spec, R, g, diag) {
   }
   const list = [...nets.values()]
   for (const n of list) if (!n.name && n.members.some((m) => m.post)) n.name = n.members.find((m) => m.post).name
+  for (const [tie, name] of ties) { const n = nets.get(uf.find(name)); if (n && !n.name) n.name = tie }
   for (const n of list) if (!n.name && n.members.some((m) => m.pin)) n.name = n.members.find((m) => m.pin).name
   // A pin of a chip or module alone on its strip is just unused: listed as open, not as a net.
   const isOpen = (n) => n.members.length === 1 && !n.members[0].lone && n.strips.size === 1 && !n.name
@@ -492,6 +501,7 @@ export default {
     }
     const plug = (p, ink) => layers.ends.push(el('circle', { cx: p[0], cy: p[1], r: 3.7, fill: ink, stroke: theme.fg, 'stroke-width': 1.1 }))
     const quad = (a, c, b, n = 16) => Array.from({ length: n + 1 }, (_, k) => { const t = k / n; return V.add(V.add(V.mul(a, (1 - t) ** 2), V.mul(c, 2 * t * (1 - t))), V.mul(b, t * t)) })
+    let rowLane = 0
     for (const w of R.wires) {
       const ink = inkColor(w.color ?? w.ink, theme)
       const a = xy(w.a), b = xy(w.b), dist = V.len(V.sub(b, a))
@@ -499,7 +509,8 @@ export default {
       // Between two sockets of one header row, the wire bows toward the board, off the pin labels.
       const rowWire = w.a.pin && w.b.pin && w.a.header.side === w.b.header.side
       const n = rowWire ? F(0, w.a.header.side === 't' ? 1 : -1) : upOf(u)
-      const off = (rowWire ? 1 : 0.5) * P
+      // Several of them take lanes at different distances, so none hides another.
+      const off = (rowWire ? 1 + 0.45 * (rowLane++ % 3) : 0.5) * P
       if (dist >= 1.9 * P && (Math.abs(u[0]) < 1e-6 || Math.abs(u[1]) < 1e-6)) {
         // Along a row or column: step half a pitch aside into the lane between holes, so the
         // wire never lies over a hole it doesn't go into.

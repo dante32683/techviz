@@ -203,3 +203,13 @@ test('round 1 of practice: header-to-header nets, unknown colors, and where a do
   const d = await bb({ cols: 12, parts: [{ id: 'R1', t: 'R', pins: ['a2', 'a6'] }, { id: 'R2', t: 'R', pins: ['c6', 'c10'] }], wires: [{ from: 'a2', to: 't-3' }] })
   assert.match(warnings(d).join('\n'), /a2 already holds R1; a hole takes one lead; use a free hole in 2a-e, which the board connects/)
 })
+
+test('round 3 of practice: the myDAQ board\'s GND pins are one tied net named GND', async () => {
+  const r = await bb({ preset: 'mydaq', parts: [{ id: 'R1', t: 'R', pins: ['c3', 'c7'] }],
+    wires: [{ from: 'AJ2.GND', to: 'a3' }, { from: 'AJ1.AI0GND', to: 'a7' }, { from: 'DIG.DIO1', to: 'AJ2.R' }, { from: 'DIG.DIO2', to: 'AJ2.G' }] })
+  assert.match(r.summary, /GND\[3A-E,7A-E\]\{R1, R1, AJ2\.GND, AJ1\.AI0GND\}/)
+  assert.match(warnings(r).join('\n'), /R1 is shorted: both leads are in net GND/)
+  const mine = await bb({ cols: 12, headers: [{ id: 'J1', pins: [{ id: 'G1', label: 'GND', tie: 'G' }, 'X', { id: 'G2', label: 'GND', tie: 'G' }] }],
+    parts: [{ id: 'R1', t: 'R', pins: ['c3', 'c7'] }], wires: [{ from: 'J1.G1', to: 'a3' }, { from: 'J1.X', to: 'a7' }, { from: 'J1.G2', to: 't-2' }] })
+  assert.match(mine.summary, /G\[3a-e,t-\]\{R1, J1\.G1, J1\.G2\}/)
+})

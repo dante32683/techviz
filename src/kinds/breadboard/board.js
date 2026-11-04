@@ -108,7 +108,8 @@ function resolveHeaders(list, g) {
       const o = typeof p === 'string' ? { label: p } : p
       if (!o || typeof o !== 'object' || (o.label === undefined && o.id === undefined)) throw new SpecError(`${path}.pins[${k}]`, 'a pin is a label like "5V" or {"id": "AO0", "label": "0"}')
       const label = String(o.label ?? o.id), id = String(o.id ?? o.label)
-      return { label, id, k, pos: at + k, name: `${h0.id}.${id}` }
+      if (o.tie !== undefined && typeof o.tie !== 'string') throw new SpecError(`${path}.pins[${k}].tie`, 'tie is a net name like "GND": pins with the same tie are joined inside the board')
+      return { label, id, k, pos: at + k, name: `${h0.id}.${id}`, tie: o.tie }
     })
     for (const p of pins) if (pins.filter((q) => q.id === p.id).length > 1) throw new SpecError(`${path}.pins`, `two pins have the id "${p.id}"; give each repeated label its own "id"`)
     return { id: h0.id, label: h0.label, side: side === g.sideName.t ? 't' : 'b', at, pins, path }
@@ -205,18 +206,21 @@ export function stripOrder(a, b) {
   return key(a) - key(b) || (a < b ? -1 : a > b ? 1 : 0)
 }
 
-/** The protoboard that comes with the NI myDAQ (Digilent): vertical, 60 rows, + and − rails on
- * each side, and the three header blocks and +5 V switch on its blue PCB to the right. */
+/** The protoboard that comes with the NI myDAQ (Digilent myProto): vertical, 60 rows, + and − rails
+ * on each side, and the three header blocks and +5 V switch on its blue PCB to the right. Per its
+ * reference manual every GND pin is one ground node, G/Y/R drive on-board LEDs through 390 Ω to
+ * ground, and CCW/Wiper/CW are an on-board 10 kΩ pot. */
+const GND = (id) => ({ id, label: 'GND', tie: 'GND' })
 export const PRESETS = {
   mydaq: {
     orient: 'vertical', cols: 60, caps: true, rails: { left: '+-', right: '+-' },
     headers: [
       { id: 'AJ1', label: 'AJ1 PWR AO AI0', side: 'right', at: 11, pins: ['S1', 'T1', 'R1', '+15V', '−15V',
-        { id: 'PWRGND', label: 'GND' }, { id: 'AOGND', label: 'GND' }, { id: 'AO0', label: '0' }, { id: 'AO1', label: '1' },
-        { id: 'AI0GND', label: 'GND' }, { id: 'AI0+', label: '0+' }, { id: 'AI0-', label: '0−' }] },
-      { id: 'DIG', label: 'AI1 DIGITAL', side: 'right', at: 25, pins: [{ id: 'AI1GND', label: 'GND' }, { id: 'AI1+', label: '1+' },
-        { id: 'AI1-', label: '1−' }, { id: 'DGND', label: 'GND' }, 'DIO0', 'DIO1', 'DIO2', 'DIO3', 'DIO4', 'DIO5', 'DIO6', 'DIO7'] },
-      { id: 'AJ2', label: 'AJ2 LED Pot PWR', side: 'right', at: 39, pins: ['G', 'Y', 'R', 'CCW', 'Wiper', 'CW', '5V', 'GND', 'Vext', 'S2', 'T2', 'R2'] },
+        GND('PWRGND'), GND('AOGND'), { id: 'AO0', label: '0' }, { id: 'AO1', label: '1' },
+        GND('AI0GND'), { id: 'AI0+', label: '0+' }, { id: 'AI0-', label: '0−' }] },
+      { id: 'DIG', label: 'AI1 DIGITAL', side: 'right', at: 25, pins: [GND('AI1GND'), { id: 'AI1+', label: '1+' },
+        { id: 'AI1-', label: '1−' }, GND('DGND'), 'DIO0', 'DIO1', 'DIO2', 'DIO3', 'DIO4', 'DIO5', 'DIO6', 'DIO7'] },
+      { id: 'AJ2', label: 'AJ2 LED Pot PWR', side: 'right', at: 39, pins: ['G', 'Y', 'R', 'CCW', 'Wiper', 'CW', '5V', GND('GND'), 'Vext', 'S2', 'T2', 'R2'] },
       { id: 'SW5V', label: '+5V ON/OFF switch', side: 'right', at: 52 },
     ],
   },
