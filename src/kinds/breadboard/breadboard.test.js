@@ -137,7 +137,7 @@ test('the mydaq preset: a vertical 60-row board with caps, its header pins wired
   const r = await renderAsync(example('mydaq-lab4.json'))
   assert.equal(warnings(r).length, 0, warnings(r).join('\n'))
   assert.match(r.summary, /^breadboard: mydaq board, 60 rows \(vertical\); headers AJ1, DIG, AJ2, SW5V;/)
-  assert.match(r.summary, /FAN\+\[3A-E,30A-E,l\+,r\+\]\{R1, S1\.1, FAN\+, AJ2\.5V\}/)
+  assert.match(r.summary, /AJ2\.5V\[3A-E,30A-E,l\+,r\+\]\{R1, S1\.1, FAN\+, AJ2\.5V\}/)
   assert.match(r.summary, /AJ1\.AI0\+\[7A-E\]\{R1, NTC\.1, AJ1\.AI0\+\}/)
   assert.match(r.summary, /DIG\.DIO4\[30F-J\]\{S1\.4, R2, DIG\.DIO4\}/)
   assert.ok(r.height > r.width, 'drawn standing up')

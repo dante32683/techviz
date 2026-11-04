@@ -214,9 +214,10 @@ function findNets(spec, R, g, diag) {
     else { n.name = name; n.at = h }
   }
   const list = [...nets.values()]
-  for (const n of list) if (!n.name && n.members.some((m) => m.post)) n.name = n.members.find((m) => m.post).name
+  // Then a tie (GND), then a header pin (the supply a net comes from), then a post.
   for (const [tie, name] of ties) { const n = nets.get(uf.find(name)); if (n && !n.name) n.name = tie }
   for (const n of list) if (!n.name && n.members.some((m) => m.pin)) n.name = n.members.find((m) => m.pin).name
+  for (const n of list) if (!n.name && n.members.some((m) => m.post)) n.name = n.members.find((m) => m.post).name
   // A pin of a chip or module alone on its strip is just unused: listed as open, not as a net.
   const isOpen = (n) => n.members.length === 1 && !n.members[0].lone && n.strips.size === 1 && !n.name
   const open = list.filter(isOpen)
@@ -413,9 +414,11 @@ export default {
       const pts = p.holes.map(xy)
       if (isTwo(p)) {
         const boxText = p.t === 'box' ? p.label ?? '' : ''
-        const { L, T } = TWO_LEAD[p.t] ?? { L: Math.max(24, boxText ? measure(boxText, 11) + 12 : 0), T: BOX_T }
         const [a, b] = pts, dist = V.len(V.sub(b, a))
         const u = V.unit(V.sub(b, a)), n = upOf(u)
+        // A box's upright label runs across it when its leads run down the page, so it widens instead.
+        const tw = boxText ? measure(boxText, 11) + 12 : 0, down = Math.abs(u[1]) > Math.abs(u[0])
+        const { L, T } = TWO_LEAD[p.t] ?? (down ? { L: 24, T: Math.max(BOX_T, tw) } : { L: Math.max(24, tw), T: BOX_T })
         // Too short to lie flat between its holes: it stands up, leads splayed below it.
         const c = dist >= L + 8 ? V.mid(a, b) : V.add(V.mid(a, b), V.mul(n, T / 2 + 0.75 * P))
         const e1 = V.sub(c, V.mul(u, L / 2 - (p.t === 'led' ? 2 : 0))), e2 = V.add(c, V.mul(u, L / 2 - (p.t === 'led' ? 2 : 0)))

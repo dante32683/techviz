@@ -1,4 +1,4 @@
-# breadboard: breadboard wiring as built, hole by hole (any board shape, or the NI myDAQ protoboard): parts, jumpers, leads, header pins, nets checked
+# breadboard: breadboard wiring as built, hole by hole (any board shape; the myDAQ's Digilent myProto protoboard): parts, jumpers, leads, header pins, nets checked
 
 A breadboard as built in lab: parts by the holes their leads go in, jumpers, off-board posts (instrument or supply leads), and header blocks
 beside the board. The strips plus the jumpers give the nets, tinted on the board and listed in `summary`: check them against the schematic.
@@ -44,7 +44,7 @@ beside the board. The strips plus the jumpers give the nets, tinted on the board
 
 ## Summary and checks
 `breadboard: 30 columns; 2 parts, 2 wires, 3 posts; bands: Rs brown-blue-red-gold-brown; nets: LO[5a-e]{DUT.1, LO} MID[9a-e,12a-e]{DUT.2, Rs, MID}
-GND[18a-e,t-]{Rs, GND}; open: U1.8`. Nets are named by `nodes`, then posts, then header pins (`AJ2.5V`), then n1, n2. `open` lists chip pins alone on
+GND[18a-e,t-]{Rs, GND}; open: U1.8`. Nets are named by `nodes`, then ties (`GND`), then header pins (`AJ2.5V`), then posts, then n1, n2. `open` lists chip pins alone on
 their strip. The nets also come as a note, so `check_panel` lists them. Errors (all at once): a hole or header pin that doesn't exist, unknown type,
 wrong pin count. Warnings: two leads in one hole, a two-lead part shorted, a lead, post, or header pin with nothing else on its net, a wire that
 connects nothing, a label with no clear spot, an `R` value with no code.
