@@ -132,3 +132,74 @@ test('the nets are a note, so check_panel lists them', async () => {
   const note = r.diagnostics.find((d) => d.level === 'note')
   assert.match(note.msg, /^nets: LO\[5a-e\]\{DUT\.1, LO\} MID/)
 })
+
+test('the mydaq preset: a vertical 60-row board with caps, its header pins wired by name into the nets', async () => {
+  const r = await renderAsync(example('mydaq-lab4.json'))
+  assert.equal(warnings(r).length, 0, warnings(r).join('\n'))
+  assert.match(r.summary, /^breadboard: mydaq board, 60 rows \(vertical\); headers AJ1, DIG, AJ2, SW5V;/)
+  assert.match(r.summary, /FAN\+\[3A-E,30A-E,l\+,r\+\]\{R1, S1\.1, FAN\+, AJ2\.5V\}/)
+  assert.match(r.summary, /AJ1\.AI0\+\[7A-E\]\{R1, NTC\.1, AJ1\.AI0\+\}/)
+  assert.match(r.summary, /DIG\.DIO4\[30F-J\]\{S1\.4, R2, DIG\.DIO4\}/)
+  assert.ok(r.height > r.width, 'drawn standing up')
+  for (const t of ['AI1 DIGITAL', 'DIO7', 'Wiper', '+5V ON/OFF switch']) assert.ok(r.svg.includes(t), t)
+})
+
+test('header pins: by id or a unique label, case and minus sign aside; repeats and unknowns name the fix', async () => {
+  const ok = await bb({ preset: 'mydaq', wires: [{ from: 'aj2.+5v', to: 'r+3' }, { from: 'AJ1.0−', to: 'A3' }, { from: 'AJ1.PWRGND', to: 'l-3' }] })
+  assert.match(ok.summary, /AJ2\.5V\[3A-E,r\+\]|\{AJ2\.5V/)
+  assert.match(ok.summary, /AJ1\.AI0-/)
+  const amb = await bb({ preset: 'mydaq', wires: [{ from: 'AJ1.GND', to: 'a3' }] })
+  assert.match(amb.text, /AJ1 has 3 pins labeled GND; name one by its id: AJ1\.PWRGND, AJ1\.AOGND, AJ1\.AI0GND/)
+  const none = await bb({ preset: 'mydaq', wires: [{ from: 'AJ2.9V', to: 'a3' }, { from: 'XX.1', to: 'a4' }] })
+  assert.match(none.text, /AJ2 has no pin "9V"; its pins are G, Y, R/)
+  assert.match(none.text, /no header "XX"; the headers are AJ1, DIG, AJ2, SW5V/)
+  const off = await bb({ preset: 'mydaq', rows: 30, wires: [{ from: 'AJ2.5V', to: 'a3' }] })
+  assert.match(off.text, /header AJ2 starts at row 39, past this 30-row board, so it isn't drawn; give "rows": 50 or more/)
+  const dup = await bb({ headers: [{ id: 'J1', pins: ['GND', 'GND'] }] })
+  assert.match(dup.text, /two pins have the id "GND"/)
+})
+
+test('a header pin wire defaults to red for a supply and black for ground', async () => {
+  const r = await bb({ cols: 12, headers: [{ id: 'J1', at: 2, pins: ['5V', 'GND', 'A0'] }],
+    parts: [{ id: 'R1', t: 'R', pins: ['c2', 'c6'] }], wires: [{ from: 'J1.5V', to: 'a2' }, { from: 'J1.GND', to: 'a6' }] })
+  assert.equal(warnings(r).length, 0, warnings(r).join('\n'))
+  assert.match(r.summary, /J1\.5V\[2a-e\]\{R1, J1\.5V\} J1\.GND\[6a-e\]\{R1, J1\.GND\}/)
+  const red = (await bb({ cols: 12, wires: [{ from: 't+2', to: 'a2' }], parts: [{ id: 'R1', t: 'R', pins: ['c2', 'c6'] }] })).svg
+  const stroke = (svg) => [...svg.matchAll(/stroke="([^"]+)" stroke-width="3.4"/g)].map((m) => m[1])
+  assert.equal(stroke(r.svg)[0], stroke(red)[0])
+})
+
+test('rails: chosen per side in page order; a missing rail or a horizontal name on a vertical board names the fix', async () => {
+  const none = await bb({ cols: 12, rails: { top: '+', bottom: '' }, wires: [{ from: 'b+1', to: 'a1' }] })
+  assert.match(none.text, /"b\+1": this board's rails are t\+$/m)
+  const vert = await bb({ orient: 'vertical', rows: 12, wires: [{ from: 't-2', to: 'a1' }] })
+  assert.match(vert.text, /"t-2": this board's rails are l\+, l-, r-, r\+; on a vertical board that is l-2/)
+  const bad = await bb({ rails: { left: '+-' } })
+  assert.match(bad.text, /a horizontal board's rail sides are top and bottom/)
+  const gaps = await bb({ cols: 12, railGaps: false, parts: [{ id: 'R1', t: 'R', pins: ['t+6', 'a6'] }], wires: [{ from: 't+1', to: 'a1' }] })
+  assert.doesNotMatch(gaps.text, /error/)
+})
+
+test('a vertical board puts an ic\'s pin 1 top left in row e, and holes take either case with caps', async () => {
+  const r = await bb({ orient: 'vertical', rows: 12, caps: true, parts: [{ id: 'U1', t: 'ic', col: 3, pins: 8 }, { id: 'R1', t: 'R', pins: ['A3', 'a7'] }] })
+  assert.match(r.summary, /12 rows \(vertical\)/)
+  assert.match(r.summary, /n1\[3A-E\]\{U1\.1, R1\}/)
+  const flat = await bb({ cols: 12, parts: [{ id: 'U1', t: 'ic', col: 3, pins: 8 }, { id: 'R1', t: 'R', pins: ['a3', 'a7'] }] })
+  assert.match(flat.summary, /n1\[3a-e\]\{U1\.8, R1\}/, 'horizontal: pin 1 is in row f, so e3 holds pin 8')
+})
+
+test('board options that do not fit are errors', async () => {
+  assert.match((await bb({ orient: 'sideways' })).text, /orient is "horizontal"/)
+  assert.match((await bb({ orient: 'vertical', half: 'top' })).text, /half works on a horizontal board only/)
+  assert.match((await bb({ cols: 20, rows: 20 })).text, /give "cols" or "rows", not both/)
+  assert.match((await bb({ preset: 'arduino' })).text, /unknown preset "arduino"; use mydaq/)
+})
+
+test('round 1 of practice: header-to-header nets, unknown colors, and where a doubled wire should go', async () => {
+  const r = await bb({ preset: 'mydaq', wires: [{ from: 'AJ2.Wiper', to: 'DIG.AI1+' }] })
+  assert.match(r.summary, /AJ2\.Wiper\{AJ2\.Wiper, DIG\.AI1\+\}/, 'no empty strip list')
+  const c = await bb({ cols: 12, parts: [{ id: 'R1', t: 'R', pins: ['a2', 'a6'] }], wires: [{ from: 'b2', to: 'b6', color: 'yellow' }] })
+  assert.match(warnings(c).join('\n'), /wires\[0\]\.color: "yellow" isn't a color; use blue, teal/)
+  const d = await bb({ cols: 12, parts: [{ id: 'R1', t: 'R', pins: ['a2', 'a6'] }, { id: 'R2', t: 'R', pins: ['c6', 'c10'] }], wires: [{ from: 'a2', to: 't-3' }] })
+  assert.match(warnings(d).join('\n'), /a2 already holds R1; a hole takes one lead; use a free hole in 2a-e, which the board connects/)
+})

@@ -1,0 +1,28 @@
+{"v":1,"kind":"breadboard","preset":"mydaq",
+ "parts":[
+  {"id":"R1","t":"R","pins":["c3","c7"],"value":"10\\,k\\Omega"},
+  {"id":"NTC","t":"box","pins":["d7","d11"],"label":"NTC"},
+  {"id":"D1","t":"led","pins":["c16","c19"],"color":"green"},
+  {"id":"Q1","t":"npn","pins":["e21","e22","e23"],"label":"2N2222"},
+  {"id":"S1","t":"ic","col":30,"pins":4,"label":"DIP"},
+  {"id":"R2","t":"R","pins":["h30","h34"],"value":"330\\,\\Omega"},
+  {"id":"D2","t":"led","pins":["i34","i37"],"color":"red"}
+ ],
+ "wires":[
+  {"from":"AJ2.5V","to":"r+59"},
+  {"from":"AJ2.GND","to":"r-58"},
+  {"from":"r+2","to":"l+2"},
+  {"from":"r-57","to":"l-57"},
+  {"from":"l+3","to":"a3"},
+  {"from":"l-11","to":"a11"},
+  {"from":"AJ1.AI0+","to":"b7"},
+  {"from":"AJ1.AI0-","to":"b11"},
+  {"from":"DIG.DIO0","to":"a16"},
+  {"from":"a19","to":"a22"},
+  {"from":"l-21","to":"a21"},
+  {"from":"l+29","to":"a30"},
+  {"from":"DIG.DIO4","to":"j30"},
+  {"from":"j37","to":"r-37"}
+ ],
+ "posts":[{"id":"FAN+","to":"r+25","label":["fan red"],"color":"red"},{"id":"FAN-","to":"a23","label":["fan black"],"color":"black"}]
+}
