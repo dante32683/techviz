@@ -1,7 +1,7 @@
 # circuit: schematics in IEC symbols, turtle placement, nets checked
 
-Schematics with IEC 60617 symbols, drawn turtle-style: each part starts where the last
-ended. Grid units (1 = 26 px), x right, y down. Check `summary` against the intended nets.
+Schematics with IEC 60617 symbols, drawn turtle-style: each part starts where the last ended. Grid units (1 = 26 px),
+x right, y down. Check `summary` against the intended nets. For where leads go on a real board, use `breadboard`.
 
 ## Fields
 

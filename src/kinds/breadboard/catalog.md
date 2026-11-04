@@ -1,14 +1,15 @@
-# breadboard: solderless breadboard wiring: parts in holes, jumpers, instrument leads, header blocks, nets checked
+# breadboard: breadboard wiring as built, hole by hole (any board shape, or the NI myDAQ protoboard): parts, jumpers, leads, header pins, nets checked
 
 A breadboard as built in lab: parts by the holes their leads go in, jumpers, off-board posts (instrument or supply leads), and header blocks
 beside the board. The strips plus the jumpers give the nets, tinted on the board and listed in `summary`: check them against the schematic.
 
 ## Holes
-- Terminal holes: row `a`-`j` and number, like `"c12"` (either case). Each number's `a`-`e` is one strip (`12a-e`), `f`-`j` another (`12f-j`).
+- Terminal holes: letter `a`-`j` and number, like `"c12"` (either case; on a vertical board the numbers are the rows people count). Each number's
+  `a`-`e` is one strip (`12a-e`), `f`-`j` another (`12f-j`).
 - Rails: `t+`, `t-`, `b-`, `b+` (top, bottom) with a number, like `"t-3"`; on a vertical board `l+`, `l-`, `r+`, `r-` (left, right). Each rail is one
   strip, gaps and all: every 6th number (6, 12, 18...) just has no rail hole (an error names the ones beside it); `railGaps: false` fills them.
-- Header pins: `"<header id>.<pin>"`, like `"AJ2.5V"`: the pin's id, or its label when only one pin has it. A hole or socket takes one lead or wire,
-  so a wire to a part's strip goes in a free hole of that strip. Pin n of a header sits at number `at` + n − 1 (`AJ1.AO0` is row 18).
+- Header pins: `"<header id>.<pin>"`, like `"AJ2.5V"`: the pin's id, or its label when only one pin has it. A hole or socket takes one lead or
+  wire, so a wire to a part's strip uses a free hole of it. Pin n of a header sits at number `at` + n − 1 (`AJ1.AO0` is row 18).
 
 ## Board
 - `preset`: `"mydaq"` is the NI myDAQ protoboard (Digilent): vertical, 60 rows, letters A-J, rails `+ −` on each side, and on its blue PCB at the
@@ -39,8 +40,7 @@ beside the board. The strips plus the jumpers give the nets, tinted on the board
   palette color. Colors: blue, teal, coral, purple, amber, green, pink, red, gray, `black`, `white`, or a #hex.
 - `posts`: `{id, to, label, side, color}`: a lead leaving the board edge to a labeled terminal. `label` is a string or lines (`["LO", "gen LO", "CH1
   probe"]`: name, then notes). `side` as for headers (default the nearer edge). A post names its net. On a myDAQ board, wire to header pins.
-- `nodes`: `{"v_{C}": "f13"}` names the net at that hole and labels it beside the strip.
-- `highlight`: ids. Steps can `add`, `set`, or `remove` parts, wires, and posts by id.
+- `nodes`: `{"v_{C}": "f13"}` names the net at that hole and labels it beside the strip. `highlight`: ids. Steps `add`, `set`, `remove` by id.
 
 ## Summary and checks
 `breadboard: 30 columns; 2 parts, 2 wires, 3 posts; bands: Rs brown-blue-red-gold-brown; nets: LO[5a-e]{DUT.1, LO} MID[9a-e,12a-e]{DUT.2, Rs, MID}
