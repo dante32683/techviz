@@ -504,7 +504,16 @@ export default {
     }
     const plug = (p, ink) => layers.ends.push(el('circle', { cx: p[0], cy: p[1], r: 3.7, fill: ink, stroke: theme.fg, 'stroke-width': 1.1 }))
     const quad = (a, c, b, n = 16) => Array.from({ length: n + 1 }, (_, k) => { const t = k / n; return V.add(V.add(V.mul(a, (1 - t) ** 2), V.mul(c, 2 * t * (1 - t))), V.mul(b, t * t)) })
-    let rowLane = 0
+    // Long wires between sockets of one header row run in lanes beside it: each takes the nearest
+    // lane (of three) where it overlaps no other, so none hides another.
+    const lanes = new Map(), taken = [[], [], []]
+    for (const w of R.wires) {
+      if (!(w.a.pin && w.b.pin && w.a.header.side === w.b.header.side) || Math.abs(w.a.pin.pos - w.b.pin.pos) < 2) continue
+      const lo = Math.min(w.a.pin.pos, w.b.pin.pos), hi = Math.max(w.a.pin.pos, w.b.pin.pos)
+      const free = (k) => taken[k].every(([a, b]) => hi < a || lo > b)
+      const k = [0, 1, 2].find(free) ?? [0, 1, 2].reduce((m, k) => (taken[k].length < taken[m].length ? k : m), 0)
+      taken[k].push([lo, hi]); lanes.set(w, k)
+    }
     for (const w of R.wires) {
       const ink = inkColor(w.color ?? w.ink, theme)
       const a = xy(w.a), b = xy(w.b), dist = V.len(V.sub(b, a))
@@ -512,8 +521,7 @@ export default {
       // Between two sockets of one header row, the wire bows toward the board, off the pin labels.
       const rowWire = w.a.pin && w.b.pin && w.a.header.side === w.b.header.side
       const n = rowWire ? F(0, w.a.header.side === 't' ? 1 : -1) : upOf(u)
-      // Several of them take lanes at different distances, so none hides another.
-      const off = (rowWire ? 1 + 0.45 * (rowLane++ % 3) : 0.5) * P
+      const off = (rowWire ? 1 + 0.45 * (lanes.get(w) ?? 0) : 0.5) * P
       if (dist >= 1.9 * P && (Math.abs(u[0]) < 1e-6 || Math.abs(u[1]) < 1e-6)) {
         // Along a row or column: step half a pitch aside into the lane between holes, so the
         // wire never lies over a hole it doesn't go into.

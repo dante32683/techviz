@@ -213,3 +213,10 @@ test('round 3 of practice: the myDAQ board\'s GND pins are one tied net named GN
     parts: [{ id: 'R1', t: 'R', pins: ['c3', 'c7'] }], wires: [{ from: 'J1.G1', to: 'a3' }, { from: 'J1.X', to: 'a7' }, { from: 'J1.G2', to: 't-2' }] })
   assert.match(mine.summary, /G\[3a-e,t-\]\{R1, J1\.G1, J1\.G2\}/)
 })
+
+test('round 5 of practice: two long pin-to-pin wires along one header row take different lanes', async () => {
+  const r = await bb({ preset: 'mydaq', rows: 52, wires: [{ from: 'AJ2.R', to: 'DIG.DIO1' }, { from: 'AJ2.5V', to: 'AJ2.CW' }, { from: 'AJ2.Wiper', to: 'AJ1.AI0+' }] })
+  const xs = [...r.svg.matchAll(/<path d="M([\d.]+) [\d.]+L([\d.]+) [\d.]+L[\d.]+ [\d.]+L[\d.]+ [\d.]+" fill="none" stroke="(?!#ffffff)[^"]+" stroke-width="3.4"/g)].map((m) => +m[2])
+  assert.equal(xs.length, 2, r.svg.slice(0, 0))
+  assert.ok(Math.abs(xs[0] - xs[1]) > 5, `lanes at ${xs}`)
+})

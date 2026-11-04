@@ -27,7 +27,7 @@ Code.
 | `fsm` | Moore and Mealy state machines, or any directed graph |
 | `plot` | Functions, parametric curves, data, and slope fields |
 | `fbd` | Free-body diagrams: forces, inclines, ropes and pulleys, supports and beam loads, fields |
-| `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, with nets checked |
+| `breadboard` | Breadboard wiring: parts in holes, jumpers, instrument leads, and header pins, with nets checked, on a board shaped like the real one (vertical or horizontal, any size, rails, printed letters) or the NI myDAQ protoboard preset |
 | `truss` | Planar trusses solved by the method of joints: reactions, member forces, sections |
 | `field` | Electric fields and equipotentials from charges, lines, rods, planes, and plates, with E and ΔV computed |
 | `ds` | Arrays, linked lists, stacks, queues, BST and AVL trees, heaps, and hash tables, traced op by op |
@@ -96,7 +96,7 @@ adds the slider and step controls:
 
 ```html
 <script type="application/json" data-techviz>{"v":1,"kind":"plot", ...}</script>
-<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.9.0/dist/techviz.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@v0.10.0/dist/techviz.js"></script>
 ```
 
 ## Development
