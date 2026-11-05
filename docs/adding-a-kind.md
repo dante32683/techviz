@@ -28,8 +28,8 @@ diagrams, `src/kinds/fbd/`) is the worked reference: read it alongside this page
    colors. Fix and re-render until they're clean. Panels (`techviz-panel`) show a figure 300 px
    wide and the widget grid about 260 px, so also check that labels stay readable at that width;
    `node ~/dev/techviz-panel/preview.mjs <panel.md> <out.html>` previews a panel in a browser.
-5. **Test and build.** `npm test`, then `npm run build` (rebuilds `dist/techviz.js`, the
-   widget bundle). `test/kinds.test.js` checks every registered kind automatically: the folder
+5. **Build and test.** Run `npm run build` first to rebuild `dist/techviz.js`, the widget
+   bundle, then run `npm test`. `test/kinds.test.js` checks every registered kind automatically: the folder
    layout, the catalog title and length, every example rendering in all four themes and every
    step with no errors or warnings, the catalog's JSON examples rendering, the README row, and
    the kind in the bundle. Its failure messages say what's missing.
@@ -98,7 +98,7 @@ export default {
 ## Releasing
 
 The widget loads `dist/techviz.js` from jsDelivr at the newest git tag (the techviz mod reads
-it with `git describe --tags`). To release, after `npm test` and `npm run build`: bump the
+it with `git describe --tags`). To release, run `npm run build` and then `npm test`; bump the
 version in the README's widget snippet, commit, `git push origin main`, then tag the commit
 (`git tag vX.Y.Z`, minor for a new kind, patch for fixes) and `git push origin vX.Y.Z`.
 Confirm `https://cdn.jsdelivr.net/gh/dante32683/techviz@vX.Y.Z/dist/techviz.js` matches the

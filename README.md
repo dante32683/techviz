@@ -102,8 +102,8 @@ adds the slider and step controls:
 ## Development
 
 ```bash
-npm test        # renders every example in all three themes and checks computed facts
 npm run build   # rebuilds dist/techviz.js and dist/quiz.js
+npm test        # renders every example in all four themes and checks computed facts
 ```
 
 [`docs/quiz.md`](docs/quiz.md) covers the quiz widget: a closed-book answer sheet drawn
