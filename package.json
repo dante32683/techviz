@@ -1,6 +1,6 @@
 {
   "name": "techviz",
-  "version": "0.1.0",
+  "version": "0.10.0",
   "description": "Renderers for technical diagrams from compact JSON specs",
   "type": "module",
   "license": "MIT",

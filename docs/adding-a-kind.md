@@ -99,7 +99,7 @@ export default {
 
 The widget loads `dist/techviz.js` from jsDelivr at the newest git tag (the techviz mod reads
 it with `git describe --tags`). To release, run `npm run build` and then `npm test`; bump the
-version in the README's widget snippet, commit, `git push origin main`, then tag the commit
+version in `package.json` and the README's widget snippet, commit, `git push origin main`, then tag the commit
 (`git tag vX.Y.Z`, minor for a new kind, patch for fixes) and `git push origin vX.Y.Z`.
 Confirm `https://cdn.jsdelivr.net/gh/dante32683/techviz@vX.Y.Z/dist/techviz.js` matches the
 local bundle. Dante has given standing permission to push and release without asking; release
