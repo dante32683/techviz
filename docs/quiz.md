@@ -5,6 +5,7 @@
 from the same jsDelivr tag as techviz:
 
 ```html
+<div data-techviz-placeholder style="color:var(--text-secondary)">Loading quiz…</div>
 <script type="application/json" data-quiz>{"v":1,"id":"phys42-rq-2026-11-10","title":"PHYS 42 mock reading quiz", ...}</script>
 <script src="https://cdn.jsdelivr.net/gh/dante32683/techviz@vX.Y.Z/dist/quiz.js"></script>
 ```
