@@ -75,3 +75,11 @@ test('an ordinary symbol still joins the letter after it', () => {
   assert.equal(text('\\angle H'), '∠H')
   assert.equal(text('\\partial x'), '∂x')
 })
+
+test('a compound unit after a number stays upright', () => {
+  for (const s of ['v = 8.0 m/s', 'a = 9.8 m/s^{2}', '4\\pi\\times10^{-7} T·m/A', '5 \\Omega/cm', '3 kΩ/cm'])
+    assert.ok(!italics(s).some((t) => /[smAc]/.test(t)), `${s}: ${italics(s)}`)
+  assert.deepEqual(italics('v = 8.0 m/s'), ['v'])
+  // A quantity written as a ratio is still italic.
+  assert.deepEqual(italics('x/y'), ['x', 'y'])
+})

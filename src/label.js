@@ -106,6 +106,8 @@ export function parseLabel(src) {
 function italicize(runs) {
   const out = []
   let prevText = ''
+  // A compound unit after a number stays upright all the way through: m/s, T·m/A, Ω/cm.
+  let unitChain = false
   const sentence = runs.some((r) => r.shift === 0 && (r.text.match(/[A-Za-z]{3,}/g) ?? []).some((w) => !OPERATORS.has(w)))
   for (const r of runs) {
     if (r.upright || r.shift !== 0) {
@@ -121,8 +123,12 @@ function italicize(runs) {
     for (const [k, part] of parts.entries()) {
       if (!part) continue
       let italic = false
+      const isWord = /^[A-Za-zα-ωΑ-Ω]/.test(part)
+      if (!isWord && !/^[/·]$/.test(part)) unitChain = false
+      const afterNumber = /[0-9.]$/.test(prevText.replace(/[\s\u2009\u00a0]+$/, ''))
+      const joined = unitChain && /[/·]$/.test(prevText) // a unit after / or · in one that began after a number
       const letters = part.replace(/[\u0300-\u036f\u20d0-\u20ff]/g, '')
-      if (/^[A-Za-zα-ωΑ-Ω]+$/.test(part.charAt(0)) && letters.length <= 2 && !/^[Α-Ω]+$/.test(letters)) {
+      if (!joined && isWord && letters.length <= 2 && !/^[Α-Ω]+$/.test(letters)) {
         const before = prevText.replace(/[\s\u2009\u00a0]+$/, '')
         const spaced = before.length < prevText.length
         italic = !/[0-9.]$/.test(before) || (!spaced && !UNITS.has(letters))
@@ -131,6 +137,7 @@ function italicize(runs) {
           if (sentence || nextWord || /[A-Za-z][\s  ]+$/.test(prevText)) italic = false
         }
       }
+      if (isWord) unitChain = !italic && (joined || afterNumber || (unitChain && /[A-Za-zα-ωΑ-Ω]$/.test(prevText)))
       const last = out[out.length - 1]
       if (last && last.shift === 0 && last.italic === italic) last.text += part
       else out.push({ text: part, shift: 0, italic })

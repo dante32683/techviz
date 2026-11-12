@@ -44,9 +44,11 @@ const xy = (p) => `(${fmt(p[0])}, ${fmt(p[1])})`
 
 export default {
   kind: 'bfield',
-  fields: ['sources', 'points', 'view', 'unit', 'B', 'paths', 'particles', 'induction', 'forces', 'highlight'],
+  fields: ['sources', 'points', 'view', 'unit', 'B', 'paths', 'particles', 'induction', 'forces', 'highlight', 'answers'],
   collections: ['sources', 'paths', 'particles', 'induction'],
   render(spec, { theme, diag, env }) {
+    // answers: false draws the givens only: no induced current, B_ind, bar force or ends, B at points, particle forces or senses, force arrows.
+    const answers = spec.answers !== false
     const unit = spec.unit ?? 'm'
     let lu = LENGTH[unit]
     if (lu === undefined) { diag.warn('unit', `unit is a length unit (${Object.keys(LENGTH).join(', ')}); "${unit}" is treated as meters`); lu = 1 }
@@ -499,12 +501,12 @@ export default {
           // Polarity: current leaves the bar (the source) at its + end.
           const plusEnd = P(W.add(o.at, W.mul(dI, o.l / 2))), minusEnd = P(W.sub(o.at, W.mul(dI, o.l / 2)))
           const out = sI
-          lab('+', [(w, h) => V.add(plusEnd, V.mul(out, 8 + extent(out, w, h))), (w, h) => V.add(plusEnd, V.add(V.mul(scr(o.u), 9 + extent(scr(o.u), w, h)), V.mul(out, 4)))], { fill: theme.positive, order: 1 })
-          lab('−', [(w, h) => V.add(minusEnd, V.mul(out, -(8 + extent(out, w, h)))), (w, h) => V.add(minusEnd, V.add(V.mul(scr(o.u), 9 + extent(scr(o.u), w, h)), V.mul(out, -4)))], { fill: theme.negative, order: 1 })
+          if (answers) lab('+', [(w, h) => V.add(plusEnd, V.mul(out, 8 + extent(out, w, h))), (w, h) => V.add(plusEnd, V.add(V.mul(scr(o.u), 9 + extent(scr(o.u), w, h)), V.mul(out, 4)))], { fill: theme.positive, order: 1 })
+          if (answers) lab('−', [(w, h) => V.add(minusEnd, V.mul(out, -(8 + extent(out, w, h)))), (w, h) => V.add(minusEnd, V.add(V.mul(scr(o.u), 9 + extent(scr(o.u), w, h)), V.mul(out, -4)))], { fill: theme.negative, order: 1 })
           // The magnetic force on the bar: I ℓ × B at the bar's center.
           const Bb = Bat(o.at), Fv = V3.mul(V3.cross([dI[0], dI[1], 0], Bb), (I ?? 1) * o.l * lu)
           o.Fbar = Fv
-          if (Math.hypot(Fv[0], Fv[1]) > 0) {
+          if (answers && Math.hypot(Fv[0], Fv[1]) > 0) {
             const fd = scr(Fv), tail = V.add(P(o.at), V.mul(fd, 4)), tip = V.add(P(o.at), V.mul(fd, ARROW))
             arrow(cv, tail, tip, FB, { width: 2.2, tag: `${tag}F`, head: 10 })
             lab(sub('F', 'B'), arrowCands(tail, tip), { fill: FB, own: `${tag}F`, order: 1 })
@@ -527,7 +529,7 @@ export default {
           curHeads = [[V.mid(outline[2], outline[3]), [o.ccw ? -1 : 1, 0]], [V.mid(outline[0], outline[1]), [o.ccw ? 1 : -1, 0]]]
         }
         cv.trace(outline, tag, 1, true)
-        if (none) curHeads = []
+        if (none || !answers) curHeads = []
         if (o.u) {
           // v from the leading edge of the loop.
           const d = scr(o.u), ext = c.circle ? c.circle[1] * S : extent(d, Math.abs(outline[1][0] - outline[0][0]), Math.abs(outline[2][1] - outline[1][1]))
@@ -541,9 +543,10 @@ export default {
         }
         if (o.N > 1 || o.label) lab(o.label ?? `N = ${fmt(o.N)}`, ringCands(center, (c.circle ? c.circle[1] : Math.max(c.rect[2] - c.rect[0], c.rect[3] - c.rect[1]) / 2) * S + 6, [-0.7, 0.7]), { own: tag })
       }
+      if (!answers) curHeads = []
       for (const [p, d] of curHeads) { head(p, d, IND, 12); cv.trace([p], `${tag}I`) }
       if (curHeads.length) lab(o.shape === 'rails' ? 'I' : sub('I', 'ind'), ringCands(curHeads[0][0], 9, V.perp(curHeads[0][1])), { fill: IND, own: `${tag}I`, order: 1 })
-      if (!none) {
+      if (!none && answers) {
         // The induced B at the center opposes the change: out of the page for ccw.
         mark(center, o.ccw, IND, 7, `${tag}b`, 'front')
         lab(sub('B', 'ind'), ringCands(center, 11, [0.7, 0.7]), { fill: IND, own: `${tag}b`, order: 1 })
@@ -668,14 +671,14 @@ export default {
           lab(label, arrowCands(tail, tip), { fill: stroke, own: t, order: 1 })
         }
         vec(v, ARROW, theme.fg, 'v', `${tag}v${j}`)
-        if (V3.len(fb)) vec(fb, Math.max(16, (ARROW - 4) * (V3.len(fb) / big)), FB, sub('F', 'B'), `${tag}b${j}`)
-        if (V3.len(fe)) vec(fe, Math.max(16, (ARROW - 4) * (V3.len(fe) / big)), FE, sub('F', 'E'), `${tag}e${j}`)
+        if (answers && V3.len(fb)) vec(fb, Math.max(16, (ARROW - 4) * (V3.len(fb) / big)), FB, sub('F', 'B'), `${tag}b${j}`)
+        if (answers && V3.len(fe)) vec(fe, Math.max(16, (ARROW - 4) * (V3.len(fe) / big)), FE, sub('F', 'E'), `${tag}e${j}`)
       })
       // Arrowheads along the path (a closed circle gets one), away from the v and F arrows.
       const allPx = p.pts.map(P), total = allPx.reduce((acc, q, k) => acc + (k ? V.len(V.sub(q, allPx[k - 1])) : 0), 0)
       const busy = cv.obs.filter(([, , , t]) => typeof t === 'string' && t.startsWith(tag) && t !== tag)
       let heads = 0
-      for (const f of res.closed ? [0.62, 0.7, 0.55] : [0.45, 0.85, 0.7, 0.3]) {
+      for (const f of !answers ? [] : res.closed ? [0.62, 0.7, 0.55] : [0.45, 0.85, 0.7, 0.3]) { // the path's sense is a result
         let acc = 0, k = 1
         for (; k < allPx.length; k++) { acc += V.len(V.sub(allPx[k], allPx[k - 1])); if (acc >= f * total) break }
         if (k >= allPx.length || !inView(p.pts[k]) || busy.some(([x, y]) => V.len(V.sub([x, y], allPx[k])) < 14)) continue
@@ -683,7 +686,7 @@ export default {
         if (++heads >= (res.closed ? 1 : 2)) break
       }
       // A helix seen side-on: dimension the pitch along B, beside the path.
-      if (p.helix && Math.hypot(p.helix.bh[0], p.helix.bh[1]) > 0.9) {
+      if (answers && p.helix && Math.hypot(p.helix.bh[0], p.helix.bh[1]) > 0.9) {
         const { k, T, bh } = p.helix, k2 = res.ts.findIndex((t) => t >= res.ts[k] + T)
         if (k2 > 0) {
           const b2 = [bh[0], bh[1]], nn = W.perp(b2)
@@ -732,7 +735,7 @@ export default {
       const mu = V3.mul(muv, s.N * s.I * s.A * lu * lu), tau = V3.cross(mu, Bext), th = (Math.acos(Math.max(-1, Math.min(1, V3.dot(mu, Bext) / (V3.len(mu) * Bm)))) * 180) / Math.PI
       const tm = V3.len(tau)
       torqueFacts.push(`loop ${name(s)}: μ = NIA = ${num(V3.len(mu))} A·m², B = ${num(Bm)} T, angle(μ, B) = ${fmt(th)}°, τ = μB sin θ = ${num(tm)} N·m${tm > 0 && s.edge ? `, turning ${tau[2] > 0 ? 'ccw' : 'cw'} (μ toward B)` : tm > 0 ? ` about ${fmt(angleOf(tau))}°` : ''}`)
-      if (!s.edge || !(tm > 0)) continue
+      if (!answers || !s.edge || !(tm > 0)) continue
       // Draw θ between μ and B, the torque's turning sense, and the forces on a rect loop's sides.
       const c = P(s.at), dm = scr(V3.mul(mu, 1 / V3.len(mu))), db = scr(Bext), R = 22
       if (Math.hypot(Bext[0], Bext[1]) > 0.5 * Bm) {
@@ -787,8 +790,10 @@ export default {
         const fm = Math.hypot(Fv[0], Fv[1])
         if (!(fm > 0)) continue
         const d = scr(Fv), c = P(at), tail = V.add(c, V.mul(d, s.type === 'segment' ? 3 : 12)), tip = V.add(c, V.mul(d, s.type === 'segment' ? ARROW : ARROW + 10))
-        arrow(cv, tail, tip, FB, { width: 2.2, tag: `f:${s.i}`, head: 10 })
-        lab(longs.length + currents.length > 2 ? sub('F', name(s)) : 'F', arrowCands(tail, tip), { fill: FB, own: `f:${s.i}`, order: 1 })
+        if (answers) {
+          arrow(cv, tail, tip, FB, { width: 2.2, tag: `f:${s.i}`, head: 10 })
+          lab(longs.length + currents.length > 2 ? sub('F', name(s)) : 'F', arrowCands(tail, tip), { fill: FB, own: `f:${s.i}`, order: 1 })
+        }
         forceFacts.push(`${perLen ? 'F/L' : 'F'} on ${name(s)} = ${num(fm)} ${perLen ? 'N/m' : 'N'} toward ${fmt(angleOf(Fv))}°`)
       }
     }
@@ -801,14 +806,14 @@ export default {
       const onWire = currents.some((s) => s.through.some((t) => !t.r && W.len(W.sub(t.at, p.at)) * S < 1))
       if (onWire) diag.warn(p.path, `point ${p.name} sits on a wire, where B is undefined; move it off`)
       const tag = `p:${p.name}`
-      if (p.showB && Bm > 0 && Math.abs(B[2]) > Math.hypot(B[0], B[1])) {
+      if (answers && p.showB && Bm > 0 && Math.abs(B[2]) > Math.hypot(B[0], B[1])) {
         mark(c, B[2] > 0, theme.fg, 6.5, tag, 'front')
         lab(p.label === false ? false : sub('B', p.label), ringCands(c, 10, [-0.7, -0.7]), { ignore: [tag], order: 0 })
       } else {
         cv.front.push(el('circle', { cx: c[0], cy: c[1], r: 3.2, fill: theme.fg }))
         cv.trace(circlePoly(c, 4, 10), tag, 1, true)
         lab(p.label, ringCands(c, 8, [-0.7, -0.7]), { ignore: [tag], order: 0 })
-        if (p.showB && Bm > 0) {
+        if (answers && p.showB && Bm > 0) {
           const d = scr(B), tail = V.add(c, V.mul(d, 4)), tip = V.add(c, V.mul(d, ARROW + 2))
           arrow(cv, tail, tip, theme.fg, { width: 2, tag: `${tag}B` })
           lab(sub('B', p.label), arrowCands(tail, tip), { own: `${tag}B`, order: 0 })
@@ -820,7 +825,7 @@ export default {
     }
 
     // Field lines of the currents (before the labels, so labels keep off them).
-    const mode = spec.B ?? (currents.length && !regions.some((r) => r.Bmag !== undefined) ? 'arrows' : 'none')
+    const mode = spec.B ?? (answers && currents.length && !regions.some((r) => r.Bmag !== undefined) ? 'arrows' : 'none')
     if (!['arrows', 'lines', 'none'].includes(mode)) throw new SpecError('B', 'B is "arrows" (a grid of arrows and ⊙/⊗ marks), "lines" (field lines around the currents), or "none"')
     let lineCount = 0
     if (mode === 'lines') lineCount = drawLines()

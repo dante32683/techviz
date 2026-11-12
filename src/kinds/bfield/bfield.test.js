@@ -147,3 +147,31 @@ test('mistakes come back with a path and a fix', async () => {
   const onWire = await renderAsync(spec({ sources: [{ type: 'wire', I: 1 }], points: { A: [0, 0], B: [1, 0] } }))
   assert.match(problems(onWire).join('\n'), /points\.A: point A sits on a wire/)
 })
+
+// answers: false keeps the givens (the v arrow, the loop, the region) and drops every result:
+// I_ind, B_ind, the bar's force, and its + and − ends. The summary still has the computed facts.
+const labelsOf = (r) => (r.svg.match(/<text[^>]*>.*?<\/text>/g) ?? []).map((t) => t.replace(/<[^>]+>/g, '').replace(/​/g, ''))
+test('answers: false draws a moving bar and a loop with dBdt without I_ind, B_ind, force, or ± marks', async () => {
+  for (const [file, moving] of [['rails.json', true], ['coil.json', false]]) {
+    const base = load(file)
+    const full = labelsOf(await renderAsync(base))
+    const r = await renderAsync({ ...base, answers: false })
+    assert.deepEqual(problems(r), [])
+    const hidden = labelsOf(r)
+    assert.ok(full.includes('Bind') && full.some((t) => t === 'I' || t === 'Iind'), `${file}: the default draws the induced current`)
+    assert.equal((await renderAsync({ ...base, answers: true })).svg, (await renderAsync(base)).svg, 'answers: true is the default')
+    for (const t of ['Bind', 'Iind', 'I', 'FB', '+', '−']) assert.ok(!hidden.includes(t), `${file}: answers false still draws ${t}`)
+    assert.equal(hidden.includes('v'), moving, `${file}: the v arrow follows the motion`)
+    assert.match(r.summary, /I_ind (clock|counterclock)wise/)
+  }
+})
+
+test('answers: false drops B at points, particle forces and path senses, wire force arrows, and the default field grid', async () => {
+  const wires = { ...load('wires.json'), answers: false }
+  const w = await renderAsync(wires)
+  assert.ok(!labelsOf(w).some((t) => /^B[A-Z]$|^F/.test(t)), 'no B_P or force labels')
+  assert.ok(labelsOf(w).includes('P'), 'the point keeps its label')
+  const p = await renderAsync({ ...load('proton.json'), answers: false })
+  assert.ok(!labelsOf(p).includes('FB'))
+  assert.ok(labelsOf(p).includes('v'))
+})

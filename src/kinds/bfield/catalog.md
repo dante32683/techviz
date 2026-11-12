@@ -39,6 +39,8 @@ right, or degrees CCW from +x.
   `dir` at `v`, with the resistor `back` (1.6 l) behind it. Draws I_ind on the loop (Lenz), B_ind at
   its center, v, and on rails the force on the bar and its + and − ends.
 - `highlight`: source or loop ids drawn thicker.
+- `answers`: `false` draws the givens only (default `true`): no I_ind, B_ind, bar force or ± ends, B at
+  points, F_B / F_E, path arrowheads, pitch, torque, `forces` arrows, or default grid. The summary keeps every result: don't show it.
 
 Summary: each source (center B, μ = NIA, μ₀nI); |B| at points with each source's share; F/L between
 long parallel wires (attract or repel); torques; per path I_enc, ∮B·dl, and with changing flux dΦ/dt
@@ -56,7 +58,7 @@ Proton in 0.5 T into the page: the full circle, v and F_B at the start and halfw
 {"v":1,"kind":"bfield","unit":"cm","sources":[{"type":"region","B":"0.5 T","dir":"in"}],
  "particles":[{"type":"proton","at":[0,-6.26],"v":"3e6 m/s","dir":"right","arrows":["start",0.5]}]}
 ```
-Bar sliding right on rails in 0.8 T out of the page (emf = Bℓv = 0.6 V, I clockwise):
+Bar sliding right on rails in 0.8 T out of the page (emf = Bℓv = 0.6 V, I clockwise; with `"answers":false` it draws no I_ind, force, or ± ends):
 ```json
 {"v":1,"kind":"bfield","sources":[{"type":"region","B":"0.8 T","dir":"out"}],
  "induction":[{"shape":"rails","at":[0.15,0],"l":0.25,"v":"3 m/s","dir":"right","R":"2 Ω","back":0.35}]}
